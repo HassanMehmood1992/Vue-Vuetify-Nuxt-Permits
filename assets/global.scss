@@ -1,0 +1,97 @@
+// Colors
+$primary: #009668;
+$accent: #d68e25;
+$secondary: #182c1b;
+$secondaryDarker: #122114;
+$contentBackground: #f4f6f9;
+$subText: grey;
+$error: #ff5252;
+$info: #2196f3;
+$success: #00d2c4;
+$warning: #ffc107;
+
+$font-family: "Montserrat", sans-serif;
+
+// main color classes
+.primary-color {
+  color: $primary;
+}
+
+.accent-color {
+  color: $accent;
+}
+
+.secondary-color {
+  color: $secondary;
+}
+
+.error-color {
+  color: $error;
+}
+// border classes
+
+.no-border-radius {
+  border-radius: 0 !important;
+}
+
+// text classes
+
+.no-decoration {
+  text-decoration: none !important;
+}
+
+// label with bottom border
+.half-a-border-on-bottom {
+  border-bottom: 1px solid $accent;
+  position: relative;
+  padding-bottom: 5px;
+}
+.half-a-border-on-bottom:after {
+  padding: 0px 0px 0px 0px;
+  margin: 0px 0px 0px 0px;
+  display: block;
+  content: '';
+  width: 65%;
+  height: 5px;
+  background-color: #fafafa;
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+}
+
+body,
+.v-application {
+  font-family: "Montserrat", sans-serif !important;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+// Mixins
+@mixin scrollbar() {
+  background-color: rgba(#aaa, 0.5);
+  border-radius: 0 !important;
+}
+
+@mixin scrollArea() {
+  max-height: calc(100vh - 120px);
+  overflow-y: auto !important;
+  padding-right: 0.7rem;
+}
+
+@mixin boxBlueShadow() {
+  box-shadow: 0 8px 32px -4px rgba($primary, 0.95) !important;
+  background-color: $primary;
+  color: #fff;
+}
+
+@mixin paperShadow() {
+  box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.2), 0px 2px 2px 0px rgba(0, 0, 0, 0.14),
+    0px 1px 5px 0px rgba(0, 0, 0, 0.12);
+  background-color: #fff;
+}
+
+@mixin hoverShadow() {
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19) !important;
+}
