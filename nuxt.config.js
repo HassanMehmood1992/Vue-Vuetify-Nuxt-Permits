@@ -29,13 +29,21 @@ export default {
       }
     ]
   },
+
+  env: {
+    authUrl: 'https://dev.clickomega.aero/PermitPad/Serve/',
+    adminUrl: 'https://dev.clickomega.aero/PermitPad/Serve/admin/',
+    apiUrl: 'https://dev.clickomega.aero/PermitPad/Serve/api/'
+  },
+
   router: {
-    middleware: 'index'
+    middleware: 'auth',
+    base: process.env.NODE_ENV == 'production' ? '/PermitPad/' : '/'
   },
   /*
    ** Customize the progress-bar color
    */
-  loading: { color: '#fff' },
+  loading: { color: '#009668' },
   /*
    ** Global CSS
    */
@@ -46,7 +54,7 @@ export default {
   /*
    ** Plugins to load before mounting the App
    */
-  plugins: ['~/plugins/preload'],
+  plugins: ['~/plugins/preload', '~/plugins/axios'],
   /*
    ** Nuxt.js dev-modules
    */
@@ -63,7 +71,9 @@ export default {
    ** Axios module configuration
    ** See https://axios.nuxtjs.org/options
    */
-  axios: {},
+  axios: {
+    baseURL: 'https://dev.clickomega.aero/PermitPad/Serve/api/'
+  },
   /*
    ** vuetify module configuration
    ** https://github.com/nuxt-community/vuetify-module
@@ -87,13 +97,24 @@ export default {
       }
     }
   },
+
+  pageTransition: {
+    name: 'page',
+    mode: 'out-in'
+  },
+
+  layoutTransition: {
+    name: 'layout',
+    mode: 'out-in'
+  },
   /*
    ** Build configuration
    */
   build: {
-    /*
-     ** You can extend webpack config here
-     */
-    extend(config, ctx) {}
+    extend(config, ctx) {
+      if (ctx.isDev) {
+        config.devtool = ctx.isClient ? 'source-map' : 'inline-source-map'
+      }
+    }
   }
 }

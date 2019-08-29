@@ -29,16 +29,16 @@ export default {
   components: {},
 
   data: () => ({
-    valid: false,
-    rememberMe: false,
-    showPassword: false
+    valid: false
   }),
 
   computed: {
     activeLang() {
       return this.$store.state.app.activeLang
     }
-  }
+  },
+
+  methods: {}
 }
 </script>
 <style lang="scss"></style>

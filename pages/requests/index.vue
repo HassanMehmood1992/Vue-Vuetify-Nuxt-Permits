@@ -3,7 +3,12 @@
     <!-- Search and filter  -->
     <v-layout wrap>
       <v-flex md2>
-        <v-text-field label="Search" class="mr-3" color="accent">
+        <v-text-field
+          label="Search"
+          v-model="selectedFilters.search"
+          class="mr-3"
+          @keyup.enter="searchRequest"
+        >
           <template v-slot:prepend-inner>
             <v-icon>mdi-magnify</v-icon>
           </template>
@@ -36,7 +41,7 @@
             no-title
             scrollable
             v-model="selectedFilters.createdDate"
-            @input="selectedFilters.createdDateModal = false"
+            @input="dateFilter('created')"
           ></v-date-picker>
         </v-menu>
       </v-flex>
@@ -73,16 +78,26 @@
             no-title
             scrollable
             v-model="selectedFilters.expiryDate"
-            @input="selectedFilters.expiryDateModal = false"
+            @input="dateFilter('expiry')"
           ></v-date-picker>
         </v-menu>
+      </v-flex>
+      <v-flex md2 class="align-self-center">
+        <!-- <div class="accent-color" @click="clearFilters()">
+          <span class="clearall">Clear all</span>
+        </div>-->
+        <v-btn small text color="accent" @click="clearFilters()" class="caption">Clear all</v-btn>
       </v-flex>
     </v-layout>
     <!-- Status Filter  -->
     <v-layout>
       <v-flex md9>
         <div class="accent-color">Status</div>
-        <template v-for="(status, i) in requestStatus">
+        <v-flex v-show="loadingStatus" class="accent-color">
+          <v-progress-circular indeterminate width="2" size="20"></v-progress-circular>
+        </v-flex>
+
+        <template v-show="!loadingStatus" v-for="(status, i) in requestStatus">
           <v-chip
             @click="updateStatus(status,i)"
             depressed
@@ -90,7 +105,7 @@
             :key="i"
             tile
             :class="status.selected ? 'selectedStatus' : 'disabledStatus'"
-            class="body-2 text-none mr-2 no-border-radius"
+            class="body-2 text-none mr-2 mt-2 no-border-radius"
           >{{status.name}}</v-chip>
         </template>
       </v-flex>
@@ -102,56 +117,45 @@
       <v-flex md4>
         <div class="accent-color">Flight Type</div>
         <div>
-          <v-chip
-            @click="selectedFilters.selectedFlightType = 'generalAviation'"
-            depressed
-            small
-            tile
-            :class="selectedFilters.selectedFlightType == 'generalAviation' ? 'selectedStatus' : 'disabledStatus'"
-            class="body-2 text-none caption mt-2 no-border-radius"
-          >General aviation</v-chip>
-          <v-chip
-            @click="selectedFilters.selectedFlightType = 'commercialTransport'"
-            depressed
-            small
-            tile
-            :class="selectedFilters.selectedFlightType == 'commercialTransport' ? 'selectedStatus' : 'disabledStatus'"
-            class="body-2 text-none caption mt-2 no-border-radius"
-          >Commercial transport</v-chip>
-          <v-chip
-            @click="selectedFilters.selectedFlightType = 'diplomatic'"
-            depressed
-            small
-            :class="selectedFilters.selectedFlightType == 'diplomatic' ? 'selectedStatus' : 'disabledStatus'"
-            tile
-            class="body-2 text-none caption mt-2 no-border-radius"
-          >Diplomatic / Military</v-chip>
+          <v-flex v-show="loadingStatus" class="accent-color">
+            <v-progress-circular indeterminate width="2" size="20"></v-progress-circular>
+          </v-flex>
+          <template v-show="!loadingStatus" v-for="(status, i) in flightTypes">
+            <v-chip
+              @click="toggleFlightType(status)"
+              depressed
+              :key="i"
+              small
+              tile
+              :class="isFlightTypeSelected(status) ? 'selectedStatus' : 'disabledStatus'"
+              class="body-2 text-none caption mt-2 mr-2 no-border-radius"
+            >{{status.name}}</v-chip>
+          </template>
         </div>
       </v-flex>
+
       <v-flex md4>
         <div class="accent-color">Permit Type</div>
         <div>
-          <v-chip
-            @click="selectedFilters.selectedPermitType = 'overflying'"
-            depressed
-            small
-            tile
-            :class="selectedFilters.selectedPermitType == 'overflying' ? 'selectedStatus' : 'disabledStatus'"
-            class="body-2 text-none caption mt-2 no-border-radius"
-          >OVER - Overflying</v-chip>
-          <v-chip
-            depressed
-            @click="selectedFilters.selectedPermitType = 'landing'"
-            small
-            tile
-            :class="selectedFilters.selectedPermitType == 'landing' ? 'selectedStatus' : 'disabledStatus'"
-            class="body-2 text-none caption mt-2 no-border-radius"
-          >LND - Landing</v-chip>
+          <v-flex v-show="loadingStatus" class="accent-color">
+            <v-progress-circular indeterminate width="2" size="20"></v-progress-circular>
+          </v-flex>
+          <template v-show="!loadingStatus" v-for="(status, i) in permitTypes">
+            <v-chip
+              @click="togglePermitType(status)"
+              depressed
+              :key="i"
+              small
+              tile
+              :class="isPermitTypeSelected(status) ? 'selectedStatus' : 'disabledStatus'"
+              class="body-2 text-none caption mt-2 no-border-radius mr-2"
+            >{{status.name}}</v-chip>
+          </template>
         </div>
       </v-flex>
     </v-layout>
 
-    <v-layout mt-4>
+    <!-- <v-layout mt-4>
       <v-flex md2 class="mr-2">
         <v-btn
           depressed
@@ -163,177 +167,364 @@
         >Filter</v-btn>
       </v-flex>
       <v-flex md2>
-        <v-btn depressed small outlined block color="primary" class="body-2 text-none caption">Clear</v-btn>
+        <v-btn
+          depressed
+          small
+          outlined
+          block
+          color="primary"
+          class="body-2 text-none caption"
+          @click="clearFilters()"
+        >Clear</v-btn>
       </v-flex>
-    </v-layout>
+    </v-layout>-->
 
     <!-- requests data  -->
 
     <v-layout mt-4>
       <v-flex md12>
-        <v-data-table :headers="headers" :items="requests">
-          <template v-slot:body="{ items }">
+        <v-data-table
+          no-data-text="No Data Found"
+          :headers="headers"
+          @pagination="updatePagination"
+          :options.sync="options"
+          :footer-props="{
+          itemsPerPageOptions:[5,10,15],
+          
+          }"
+          :page.sync="myPageNumber"
+          :server-items-length="totalRequests"
+          :items="requests"
+          :items-per-page.sync="payload.PageSize"
+          :loading="dashboardLoading"
+          loading-text="Loading records..."
+        >
+          <template v-if="requests.length == 0" v-slot:no-data>No Record Found!</template>
+          <template v-else v-slot:body="{ items }">
             <tbody>
               <tr v-for="item in items" :key="item.id">
                 <td>
                   <router-link
-                    :to="{name: 'requests-view-id',params : { id: 123}}"
+                    :to="{name: 'requests-view-id',params : { id: item.id}}"
                   >{{item.RequestNumber}}</router-link>
                 </td>
-                <td>{{item.Operator}}</td>
+                <td v-if="isAdmin">{{item.Operator}}</td>
                 <td>{{item.CreatedDate}}</td>
                 <td>{{item.ExpiryDate}}</td>
                 <td>{{item.FlightType}}</td>
                 <td>{{item.PermitType}}</td>
-                <td>{{item.Status}}</td>
-                <td class="text-xs-right">
-                  <v-menu offset-y dense open-on-click content-class="adminAction--dropdown" left>
+                <td
+                  :class="item.Status == 'Waiting For Approval' ? 'accent-color' : ''"
+                >{{item.Status}}</td>
+                <td v-if="!isAdmin" class="text-xs-right">
+                  <v-menu
+                    offset-y
+                    dense
+                    open-on-click
+                    v-if="item.Status == 'Waiting For Approval' || item.Status == 'Rejected'"
+                    content-class="adminAction--dropdown"
+                    left
+                  >
                     <template v-slot:activator="{ on }">
                       <v-icon v-on="on">mdi-dots-vertical</v-icon>
                     </template>
-                    <v-list>
-                      <v-list-item @click="onEditUser(item)">
+                    <v-list dense>
+                      <v-list-item :to="{name: 'requests-edit-id', params: {id: item.id}}">
                         <v-list-item-title>Edit</v-list-item-title>
                       </v-list-item>
-                      <v-list-item>
+                      <!-- <v-list-item @click="onEditUser(item)">
+                        <v-list-item-title>Cancel</v-list-item-title>
+                      </v-list-item>-->
+                      <!-- <v-list-item>
                         <v-list-item-title class="error-color">Delete</v-list-item-title>
-                      </v-list-item>
+                      </v-list-item>-->
                     </v-list>
                   </v-menu>
                 </td>
               </tr>
             </tbody>
           </template>
+          <!-- <template v-slot:footer>
+            <v-data-footer
+              :options="{page: 1,itemsPerPage: 1}"
+              :pagination="{page: 1,itemsPerPage: 10,pageStart: 1,pageStop: 1,pageCount: 1,itemsLength: 10}"
+            ></v-data-footer>
+          </template>-->
         </v-data-table>
       </v-flex>
     </v-layout>
+    <app-snackbar :snackbar="snackbar" @snackbarAction="onSnackbarAction($event)"></app-snackbar>
   </v-container>
 </template>
 <script>
 export default {
   layout: 'main',
   components: {},
-
+  loadingStatus: false,
+  watch: {
+    options: {
+      handler() {
+        this.getPermitRequests()
+      },
+      deep: true,
+      immediate: false
+    }
+  },
   data: () => ({
-    requestStatus: [
-      {
-        name: 'Approved',
-        id: 0,
-        selected: false
-      },
-      {
-        name: 'Canceled',
-        id: 0,
-        selected: false
-      },
-      {
-        name: 'Expired',
-        id: 0,
-        selected: false
-      },
-      {
-        name: 'Waiting for approval',
-        id: 0,
-        selected: false
-      },
-      {
-        name: 'Approved and waiting for payment',
-        id: 0,
-        selected: false
-      },
-      {
-        name: 'Waiting for last approval',
-        id: 0,
-        selected: false
-      },
-      {
-        name: 'Expired',
-        id: 0,
-        selected: false
-      }
-    ],
+    options: {},
+    myPageNumber: 0,
+    totalRequests: 0,
+    snackbar: {
+      show: false,
+      timeout: 6000,
+      text: 'Incorrect email address or password',
+      actions: ['Close']
+    },
+    payload: {
+      StatusId: [],
+      PermitTypeId: null,
+      FlightTypeId: null,
+      Search: null,
+      CreatedDate: null,
+      ExpiryDate: null,
+      PageNumber: 0,
+      PageSize: 10
+    },
+    requestStatus: [],
+    flightTypes: [],
+    permitTypes: [],
+    dashboardLoading: false,
     selectedFilters: {
       createdDate: null,
       createdDateModal: false,
-      expirayDate: null,
-      expirayDateModal: false,
-      selectedFlightType: '',
-      selectedPermitType: ''
+      expiryDate: null,
+      search: null,
+      expiryDateModal: false,
+      selectedFlightType: null,
+      selectedPermitType: null
     },
     title: 'Requests',
-    headers: [
-      {
-        text: 'Request Number',
-        align: 'left',
-        sortable: false,
-        value: 'RequestNumber'
-      },
-      {
-        text: 'Operator',
-        align: 'left',
-        sortable: false,
-        value: 'Operator'
-      },
-      {
-        text: 'Creation Date',
-        align: 'left',
-        sortable: false,
-        value: 'CreatedDate'
-      },
-      {
-        text: 'Expiry Date',
-        align: 'left',
-        sortable: false,
-        value: 'ExpiryDate'
-      },
-      {
-        text: 'Flight Type',
-        align: 'left',
-        sortable: false,
-        value: 'FlightType'
-      },
-      {
-        text: 'Permit Type',
-        align: 'left',
-        sortable: false,
-        value: 'PermitType'
-      },
-      {
-        text: 'Status',
-        align: 'left',
-        sortable: false,
-        value: 'Status'
-      },
-      {
-        text: '',
-        align: 'right',
-        sortable: false,
-        value: 'actions'
-      }
-    ],
-    requests: [
-      {
-        id: 1,
-        RequestNumber: 13210,
-        Operator: 'Operator x',
-        CreatedDate: moment(new Date()).format('MM-DD-YYYY'),
-        ExpiryDate: moment(new Date()).format('MM-DD-YYYY'),
-        FlightType: 'General Aviation',
-        PermitType: 'LND - Landing',
-        Status: 1
-      }
-    ]
+    requests: []
   }),
-  methods: {
-    updateFlightType(flightType, permitType, cssClass) {
-      this.flightTypes.selectedPermitType = cssClass
+  computed: {
+    isAdmin() {
+      return this.$store.state.app.isAdmin
     },
-    updateStatus(status, index) {
-      this.requestStatus[index].selected = !status.selected
+    headers() {
+      let tempHeaders = [
+        {
+          text: 'Request Number',
+          align: 'left',
+          sortable: false,
+          value: 'RequestNumber'
+        },
+        {
+          text: 'Operator',
+          align: 'left',
+          sortable: false,
+          value: 'Operator',
+          class: ''
+        },
+        {
+          text: 'Creation Date',
+          align: 'left',
+          sortable: false,
+          value: 'CreatedDate'
+        },
+        {
+          text: 'Expiry Date',
+          align: 'left',
+          sortable: false,
+          value: 'ExpiryDate'
+        },
+        {
+          text: 'Flight Type',
+          align: 'left',
+          sortable: false,
+          value: 'FlightType'
+        },
+        {
+          text: 'Permit Type',
+          align: 'left',
+          sortable: false,
+          value: 'PermitType'
+        },
+        {
+          text: 'Status',
+          align: 'left',
+          sortable: false,
+          value: 'Status'
+        },
+        {
+          text: '',
+          align: 'right',
+          sortable: false,
+          value: 'actions'
+        }
+      ]
+      return this.isAdmin
+        ? _.reject(tempHeaders, { value: 'actions' })
+        : _.reject(tempHeaders, { value: 'Operator' })
     }
   },
-  mounted() {
+  methods: {
+    updatePagination(pagination) {
+      console.log(pagination)
+      this.payload.PageNumber = pagination.page - 1
+      //this.myPageNumber = pagination.page - 1
+    },
+    dateFilter(input) {
+      this.payload.PageNumber = 0
+      this.myPageNumber = 1
+      if (input == 'created') {
+        this.selectedFilters.createdDateModal = false
+      } else {
+        this.selectedFilters.expiryDateModal = false
+      }
+      this.getPermitRequests()
+    },
+    onSnackbarAction(action) {
+      this.snackbar.show = false
+    },
+    searchRequest() {
+      this.payload.Search = this.selectedFilters.search.trim()
+      // if (this.payload.Search.length > 3) {
+      //   this.getPermitRequests()
+      // }
+      this.myPageNumber = 1
+      this.getPermitRequests()
+    },
+    togglePermitType(group) {
+      if (this.isPermitTypeSelected(group)) {
+        this.selectedFilters.selectedPermitType = null
+      } else {
+        this.selectedFilters.selectedPermitType = group
+      }
+      this.payload.PageNumber = 0
+      this.myPageNumber = 1
+      this.getPermitRequests()
+    },
+    isPermitTypeSelected(group) {
+      return this.selectedFilters.selectedPermitType === group
+    },
+    toggleFlightType(group) {
+      if (this.isFlightTypeSelected(group)) {
+        this.selectedFilters.selectedFlightType = null
+      } else {
+        this.selectedFilters.selectedFlightType = group
+      }
+      this.payload.PageNumber = 0
+      this.myPageNumber = 1
+      this.getPermitRequests()
+    },
+    isFlightTypeSelected(group) {
+      return this.selectedFilters.selectedFlightType === group
+    },
+
+    clearFilters() {
+      this.selectedFilters = {
+        createdDate: null,
+        expiryDate: null,
+        search: null,
+        selectedFlightType: null,
+        selectedPermitType: null
+      }
+      this.requestStatus = _.forEach(this.requestStatus, element => {
+        element.selected = false
+      })
+      this.payload = {
+        StatusId: [],
+        PermitTypeId: null,
+        FlightTypeId: null,
+        Search: null,
+        CreatedDate: null,
+        ExpiryDate: null,
+        PageNumber: 0,
+        PageSize: 10
+      }
+      this.myPageNumber = 1
+      this.getPermitRequests()
+    },
+
+    updateStatus(status, index) {
+      this.requestStatus[index].selected = !status.selected
+      this.payload.PageNumber = 0
+      this.myPageNumber = 1
+      this.getPermitRequests()
+    },
+    getRequestStatus() {
+      this.loadingStatus = true
+      this.$axios.$get(`Common/GetListByType?type=All`).then(response => {
+        this.loadingStatus = false
+        if (response.success) {
+          this.requestStatus = _.map(
+            _.filter(response.result, { type: 'Status' }),
+            item => {
+              return {
+                id: item.id,
+                name: item.name,
+                selected: false
+              }
+            }
+          )
+          this.flightTypes = _.filter(response.result, { type: 'FlightType' })
+          this.permitTypes = _.filter(response.result, { type: 'PermitType' })
+        } else {
+        }
+      })
+    },
+    getPermitRequests() {
+      this.payload.CreatedDate = this.selectedFilters.createdDate
+        ? this.selectedFilters.createdDate
+        : null
+      this.payload.ExpiryDate = this.selectedFilters.expiryDate
+        ? this.selectedFilters.expiryDate
+        : null
+
+      this.payload.StatusId = _.map(
+        _.filter(this.requestStatus, { selected: true }),
+        'id'
+      ) // [1,2,3,4]
+      this.payload.PermitTypeId = this.selectedFilters.selectedPermitType
+        ? this.selectedFilters.selectedPermitType.id
+        : null
+      this.payload.FlightTypeId = this.selectedFilters.selectedFlightType
+        ? this.selectedFilters.selectedFlightType.id
+        : null
+      this.dashboardLoading = true
+      let apiURL = this.isAdmin
+        ? `${process.env.adminUrl}Request/all`
+        : `Request/all`
+
+      //this.payload.PageNumber // data table pagination
+      this.$axios.$post(apiURL, this.payload).then(response => {
+        this.dashboardLoading = false
+        if (response.success) {
+          // alert()
+          this.totalRequests = response.result.total
+          this.requests = _.map(response.result.requests, item => {
+            return {
+              id: item.id,
+              RequestNumber: item.number,
+              Operator: item.operatorName,
+              CreatedDate: moment(item.createdDate).format('MM-DD-YYYY'),
+              ExpiryDate: moment(item.expiryDate).format('MM-DD-YYYY'),
+              FlightType: item.flightType,
+              PermitType: item.permitType,
+              Status: item.status
+            }
+          })
+        } else {
+          this.snackbar.text = response.message
+          this.snackbar.show = true
+        }
+      })
+    }
+  },
+  created() {
     this.$store.dispatch('app/setAppTitle', this.title)
+    this.getRequestStatus()
+    //this.getPermitRequests()
   }
 }
 </script>
@@ -347,5 +538,10 @@ export default {
 .disabledStatus {
   background-color: #cacaca !important;
   color: #8a8a8a !important;
+}
+.clearall {
+  // border-bottom: 1px solid $accent;
+  // padding-bottom: 4px;
+  cursor: pointer;
 }
 </style>

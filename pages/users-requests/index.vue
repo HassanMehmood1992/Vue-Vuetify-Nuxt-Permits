@@ -15,6 +15,7 @@ import UsersTable from '~/components/UsersTable'
 export default {
   layout: 'main',
   components: { UsersTable },
+  middleware: 'admin',
 
   data: () => ({
     title: 'Users Requests',

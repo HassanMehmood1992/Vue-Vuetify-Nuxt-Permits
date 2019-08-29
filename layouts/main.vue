@@ -8,6 +8,7 @@
       :clipped="clipped"
       fixed
       app
+      disable-resize-watcher
     >
       <v-list>
         <v-subheader v-if="!miniVariant" class="subtitle-1">
@@ -48,8 +49,16 @@
         </v-list-item>
       </v-list>
     </v-navigation-drawer>
-    <v-app-bar :clipped-left="false" flat fixed app color="white">
+    <v-app-bar :clipped-left="false" fixed app color="white">
+      <v-app-bar-nav-icon v-if="!drawer" @click="drawer = !drawer" color="accent"></v-app-bar-nav-icon>
       <v-toolbar-title class="accent-color">{{ title }}</v-toolbar-title>
+      <!-- <v-progress-linear
+        :active="loading"
+        :indeterminate="loading"
+        absolute
+        bottom
+        color="primary accent-4"
+      ></v-progress-linear>-->
       <v-spacer />
       <div class="caption mr-2 secondary-color" text>Geraldine Bacang</div>
       <v-menu
@@ -71,26 +80,8 @@
               <span class="white--text">G</span>
             </v-avatar>
             <div class="body-1 mt-3 white--text">Geraldine Bacang</div>
-            <div class="caption accent-color">Software Developer</div>
+            <div class="caption accent-color">geraldine.bacang@click.aero</div>
           </v-card-title>
-          <v-card-text class="mt-7">
-            <div class="mb-2">
-              <div class="accent-color caption">Address</div>
-              <div class="caption">1703 Jumeirah Bay X2, Jumeirah Lakes Towers, Dubai, UAE</div>
-            </div>
-            <div class="mb-2">
-              <div class="accent-color caption">Email Address</div>
-              <div class="caption">geraldine.bacang@click.aero</div>
-            </div>
-            <div class="mb-2">
-              <div class="accent-color caption">Mobile Number</div>
-              <div class="caption">+971 123 4567</div>
-            </div>
-            <div class="mb-2">
-              <div class="accent-color caption">Phone Number</div>
-              <div class="caption">+971 123 4567</div>
-            </div>
-          </v-card-text>
           <v-card-actions class="d-flex flex-column align-center mt-5">
             <v-btn
               outlined
@@ -98,7 +89,8 @@
               color="accent"
               width="250px"
               class="mb-3 ml-0 caption"
-            >Edit Profile</v-btn>
+              to="/profile"
+            >Profile</v-btn>
             <v-btn
               outlined
               x-small
@@ -119,9 +111,11 @@
       </v-menu>
     </v-app-bar>
     <v-content>
-      <v-container class="px-8 pt-5">
-        <nuxt />
-      </v-container>
+      <perfect-scrollbar>
+        <v-container class="px-8 pt-5">
+          <nuxt />
+        </v-container>
+      </perfect-scrollbar>
     </v-content>
   </v-app>
 </template>
@@ -176,12 +170,6 @@ export default {
     userprofileMenu: false
   }),
 
-  methods: {
-    logout() {
-      this.$router.push({ name: 'login' })
-    }
-  },
-
   computed: {
     title() {
       return this.$store.state.app.apptitle
@@ -189,6 +177,52 @@ export default {
 
     isAdmin() {
       return this.$store.state.app.isAdmin
+    },
+
+    loading() {
+      return this.$store.state.app.loading
+    }
+  },
+
+  created() {
+    window.getApp = this
+    this.getCategories()
+  },
+
+  methods: {
+    getCategories() {
+      this.$axios.$get(`Common/GetListByType?type=All`).then(response => {
+        if (response.success) {
+          this.$store.dispatch(
+            'category/setRequestStatuses',
+            _.filter(response.result, { type: 'Status' })
+          )
+          this.$store.dispatch(
+            'category/setFlightTypes',
+            _.filter(response.result, { type: 'FlightType' })
+          )
+          this.$store.dispatch(
+            'category/setPermitTypes',
+            _.filter(response.result, { type: 'PermitType' })
+          )
+          this.$store.dispatch(
+            'category/setPurposeOfLanding',
+            _.filter(response.result, { type: 'PurposeOfLanding' })
+          )
+          this.$store.dispatch(
+            'category/setActions',
+            _.filter(response.result, { type: 'Actions' })
+          )
+          this.$store.dispatch(
+            'category/setClearanceTypes',
+            _.filter(response.result, { type: 'ClearanceType' })
+          )
+        } else {
+        }
+      })
+    },
+    logout() {
+      this.$router.push({ name: 'login' })
     }
   }
 }

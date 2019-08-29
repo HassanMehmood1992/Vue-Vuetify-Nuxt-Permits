@@ -18,7 +18,11 @@ export default {
 
   methods: {
     filesAdded(files) {
-      console.log(files)
+      // console.log(files)
+      files.forEach(file => {
+        this.$set(file, 'uploading', false)
+        this.$set(file, 'uploaded', false)
+      })
       this.$emit('filesAdded', files)
     }
   }

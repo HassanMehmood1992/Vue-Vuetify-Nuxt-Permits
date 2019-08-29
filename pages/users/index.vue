@@ -18,13 +18,21 @@ export default {
 
   data: () => ({
     title: 'Users',
-    valid: false
+    users: []
   }),
 
   mounted() {
     this.$store.dispatch('app/setAppTitle', this.title)
   },
 
-  methods: {}
+  methods: {
+    getUsers() {
+      this.$axios
+        .$get(`${process.env.adminUrl}accounts/user/all`)
+        .then(response => {
+          this.users = response.result
+        })
+    }
+  }
 }
 </script>

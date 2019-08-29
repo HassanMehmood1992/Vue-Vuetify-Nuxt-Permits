@@ -13,15 +13,19 @@
   },
   "dependencies": {
     "@nuxtjs/axios": "^5.3.6",
+    "crypto-js": "^3.1.9-1",
     "leaflet": "^1.5.1",
     "leaflet-bing-layer": "^3.3.1",
+    "leaflet-polylinedecorator": "^1.6.0",
     "nuxt": "^2.0.0",
     "nuxt-leaflet": "0.0.19",
+    "qs": "^6.8.0",
     "vue-lodash": "^2.0.2",
     "vue-moment": "^4.0.0",
     "vue-simple-uploader": "^0.7.1",
     "vue-the-mask": "^0.11.1",
-    "vue2-leaflet": "^2.2.1"
+    "vue2-leaflet": "^2.2.1",
+    "vue2-perfect-scrollbar": "^1.2.1"
   },
   "devDependencies": {
     "@nuxtjs/vuetify": "^1.2.1",

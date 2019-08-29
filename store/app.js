@@ -1,20 +1,29 @@
 // The store is used to manage the state of action buttons
 // rendered in the sub header section across the application
-const state = {
+export const state = () => ({
   apptitle: '',
+  isLoggedIn: true,
   isAdmin: false,
   inputRules: {
     required: value => !!value || 'Required.',
     email: value => {
       const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
       return pattern.test(value) || 'Invalid e-mail.'
-    }
+    },
+    passwordFormat: v =>
+      (/^.{6,}$/.test(v) &&
+        /(?=.*[A-Z])/.test(v) &&
+        /(?=.*[a-z])/.test(v) &&
+        /(?=.*\d)/.test(v) &&
+        /(?=.*[_\W])/.test(v)) ||
+      'Passwords must have correct format'
   },
   masks: {
     phoneNumber: '+###-##-#######'
-  }
-}
-const getters = {
+  },
+  loading: false
+})
+export const getters = {
   getAppTitle() {
     return state.apptitle || ''
   },
@@ -27,16 +36,20 @@ const getters = {
     return state.inputRules
   }
 }
-const mutations = {
+export const mutations = {
   setAppTitle(state, title) {
     state.apptitle = title
   },
 
   setIsAdmin(state, val) {
     state.isAdmin = val
+  },
+
+  setLoading(state, val) {
+    state.loading = val
   }
 }
-const actions = {
+export const actions = {
   setAppTitle(context, actions) {
     state.apptitle = actions
     context.commit('setAppTitle', state.apptitle)
@@ -45,12 +58,10 @@ const actions = {
   setIsAdmin(context, actions) {
     state.isAdmin = actions
     context.commit('setIsAdmin', state.isAdmin)
+  },
+
+  setLoading(context, actions) {
+    state.loading = actions
+    context.commit('setLoading', state.loading)
   }
-}
-export default {
-  state,
-  getters,
-  actions,
-  mutations,
-  namespaced: true
 }
