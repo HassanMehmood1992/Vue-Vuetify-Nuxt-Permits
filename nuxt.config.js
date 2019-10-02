@@ -6,7 +6,7 @@ export default {
    ** Headers of the page
    */
   head: {
-    titleTemplate: '%s - ' + process.env.npm_package_name,
+    titleTemplate: '%s',
     title: process.env.npm_package_name || '',
     meta: [
       { charset: 'utf-8' },
@@ -18,7 +18,14 @@ export default {
       }
     ],
     link: [
-      { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+      {
+        rel: 'icon',
+        type: 'image/x-icon',
+        href:
+          process.env.NODE_ENV == 'production'
+            ? '/PermitPad/permitpad.ico'
+            : '/permitpad.ico'
+      },
       {
         rel: 'stylesheet',
         href: 'https://fonts.googleapis.com/css?family=Montserrat'
@@ -26,6 +33,10 @@ export default {
       {
         rel: 'stylesheet',
         href: 'https://unpkg.com/leaflet@1.3.4/dist/leaflet.css'
+      },
+      {
+        href:
+          'https://www.google.com/recaptcha/api.js?render=6Le-PrcUAAAAAEWTbA1MbguvRjxYDjNJIuMO1vZJ'
       }
     ]
   },
@@ -43,7 +54,8 @@ export default {
   /*
    ** Customize the progress-bar color
    */
-  loading: { color: '#009668' },
+  // loading: { color: '#d68e25' },
+  loading: false,
   /*
    ** Global CSS
    */
@@ -64,16 +76,9 @@ export default {
    */
   modules: [
     // Doc: https://axios.nuxtjs.org/usage
-    'nuxt-leaflet',
-    '@nuxtjs/axios'
+    'nuxt-leaflet'
   ],
-  /*
-   ** Axios module configuration
-   ** See https://axios.nuxtjs.org/options
-   */
-  axios: {
-    baseURL: 'https://dev.clickomega.aero/PermitPad/Serve/api/'
-  },
+
   /*
    ** vuetify module configuration
    ** https://github.com/nuxt-community/vuetify-module

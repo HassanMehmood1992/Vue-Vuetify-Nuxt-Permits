@@ -1,16 +1,19 @@
 <template>
-  <v-autocomplete
-    v-model="val"
-    :item-text="'icao' || 'iata'"
+  <v-combobox
+    v-model="airport"
+    item-text="iata"
     dense
     return-object
     no-data-text="Type to search for an airport"
     :search-input.sync="search"
     :items="items"
-    :label="label"
     :loading="loading"
     :disabled="loading"
     :rules="rules"
+    :filter="filterItems"
+    :required="required"
+    clearable
+    @change="$emit('onSelect', $event)"
   >
     <template v-slot:item="data">
       <div>
@@ -18,33 +21,46 @@
         <span class="caption accent--text ml-2">{{ `(${data.item.name})` }}</span>
       </div>
     </template>
-  </v-autocomplete>
+    <template v-slot:selection="data">
+      <span>{{ `${data.item.iata} / ${data.item.icao}` }}</span>
+    </template>
+    <template v-slot:label>
+      <span>{{ label }}</span>
+      <span v-if="required" class="red--text">*</span>
+    </template>
+  </v-combobox>
 </template>
 
 <script>
 export default {
-  props: ['value', 'label', 'rules'],
+  props: ['value', 'label', 'rules', 'required'],
   data: () => ({
+    airport: '',
     items: [],
     loading: false,
     search: ''
   }),
 
-  computed: {
-    val: {
-      get() {
-        return this.value
-      },
-      set(v) {
-        this.$emit('onSelect', v)
-      }
-    }
-  },
-
   watch: {
     search: {
       handler() {
-        this.getItems()
+        if (this.search) this.getItems()
+      }
+    },
+
+    value: {
+      handler() {
+        if (this.value && this.value.id) {
+          this.airport = {
+            airportFullName: this.value.name,
+            iata: this.value.iata,
+            icao: this.value.icao,
+            id: this.value.id,
+            name: this.value.name
+          }
+        } else {
+          this.airport = null
+        }
       }
     }
   },
@@ -52,15 +68,25 @@ export default {
   methods: {
     getItems: _.debounce(function(e) {
       this.loading = true
-      this.$axios
-        .$get(`Common/GetAirportListSearch?airport=${this.search}`)
+      this.items = []
+      axios
+        .get(`Common/GetAirportListSearch?airport=${this.search}`)
         .then(response => {
-          this.items = response.result
+          if (response && response.data.success)
+            this.items = [...response.data.result]
         })
         .finally(() => {
           this.loading = false
         })
-    }, 1000)
+    }, 1000),
+
+    filterItems(item, queryText, itemText) {
+      return (
+        item.iata.toLowerCase().includes(queryText.toLowerCase()) ||
+        item.icao.toLowerCase().includes(queryText.toLowerCase()) ||
+        item.name.toLowerCase().includes(queryText.toLowerCase())
+      )
+    }
   }
 }
 </script>

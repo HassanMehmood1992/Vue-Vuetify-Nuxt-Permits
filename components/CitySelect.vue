@@ -5,15 +5,21 @@
     dense
     return-object
     :items="items"
-    :label="label"
     :loading="loading"
     :rules="rules"
-  ></v-autocomplete>
+    :required="required"
+    clearable
+  >
+    <template v-slot:label>
+      <span>{{ label }}</span>
+      <span v-if="required" class="red--text">*</span>
+    </template>
+  </v-autocomplete>
 </template>
 
 <script>
 export default {
-  props: ['value', 'label', 'rules', 'countryId'],
+  props: ['value', 'label', 'rules', 'countryId', 'required'],
   data: () => ({
     items: [],
     loading: false
@@ -31,18 +37,22 @@ export default {
   },
 
   watch: {
-    countryId() {
-      if (this.countryId) this.getItems()
+    countryId: {
+      immediate: true,
+      handler() {
+        if (this.countryId) this.getItems()
+      }
     }
   },
 
   methods: {
     getItems() {
       this.loading = true
-      this.$axios
-        .$get(`/Common/GetCityByCountry/${this.countryId}`)
+      axios
+        .get(`/Common/GetCityByCountry/${this.countryId}`)
         .then(response => {
-          this.items = response.result
+          if (response && response.data.success)
+            this.items = response.data.result
         })
         .finally(() => {
           this.loading = false

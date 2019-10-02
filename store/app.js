@@ -2,8 +2,6 @@
 // rendered in the sub header section across the application
 export const state = () => ({
   apptitle: '',
-  isLoggedIn: true,
-  isAdmin: false,
   inputRules: {
     required: value => !!value || 'Required.',
     email: value => {
@@ -19,21 +17,22 @@ export const state = () => ({
       'Passwords must have correct format'
   },
   masks: {
-    phoneNumber: '+###-##-#######'
+    phoneNumber: '+###-##-#######',
   },
-  loading: false
+  loading: false,
+  requestsFilter: null
 })
 export const getters = {
   getAppTitle() {
     return state.apptitle || ''
   },
 
-  getIsAdmin() {
-    return state.isAdmin
-  },
-
   getInputRules() {
     return state.inputRules
+  },
+
+  getRequestsFilter() {
+    return state.requestsFilter
   }
 }
 export const mutations = {
@@ -41,12 +40,12 @@ export const mutations = {
     state.apptitle = title
   },
 
-  setIsAdmin(state, val) {
-    state.isAdmin = val
-  },
-
   setLoading(state, val) {
     state.loading = val
+  },
+
+  setRequestsFilter(state, val) {
+    state.requestsFilter = val
   }
 }
 export const actions = {
@@ -55,13 +54,13 @@ export const actions = {
     context.commit('setAppTitle', state.apptitle)
   },
 
-  setIsAdmin(context, actions) {
-    state.isAdmin = actions
-    context.commit('setIsAdmin', state.isAdmin)
-  },
-
   setLoading(context, actions) {
     state.loading = actions
     context.commit('setLoading', state.loading)
+  },
+
+  setRequestsFilter(context, actions) {
+    state.requestsFilter = actions
+    context.commit('setRequestsFilter', state.requestsFilter)
   }
 }

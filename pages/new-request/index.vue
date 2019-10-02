@@ -25,28 +25,34 @@ export default {
     }
   }),
 
+  head() {
+    return {
+      titleTemplate: `${this.title} - %s`
+    }
+  },
+
   mounted() {
     this.$store.dispatch('app/setAppTitle', this.title)
   },
 
   methods: {
+    onSnackbarAction(action) {
+      this.snackbar.show = false
+    },
     generateRequest(payload) {
-      this.$store.dispatch('app/setLoading', true)
-      this.$axios
-        .$post('request/add', payload)
-        .then(response => {
-          if (response.success) {
-            this.snackbar = {
-              show: true,
-              timeout: 6000,
-              text: response.message,
-              actions: ['Close']
-            }
+      axios.post('request/add', payload).then(response => {
+        if (response && response.data.success) {
+          this.$router.push({
+            name: 'requests-view-id',
+            params: { id: response.data.result }
+          })
+
+          window.getApp.snackbar = {
+            show: true,
+            text: response.data.message
           }
-        })
-        .finally(() => {
-          this.$store.dispatch('app/setLoading', false)
-        })
+        }
+      })
     }
   }
 }

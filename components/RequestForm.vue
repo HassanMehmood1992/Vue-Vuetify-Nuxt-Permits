@@ -1,23 +1,29 @@
 <template>
-  <v-layout wrap class="request-form">
+  <v-layout wrap class="request-form white-background pa-5">
     <v-flex xs12 sm12 md12 class="d-flex justify-space-between pa-0">
       <div v-if="action == 'edit'" class="mb-3 d-flex">
         <div class="mr-10">
-          <div class="overline">Request Number</div>
+          <div class="caption grey--text">Request Number</div>
           <div class="accent--text">{{ request ? request.number : '' }}</div>
         </div>
         <div>
-          <div class="overline">Status</div>
-          <div class="accent--text">{{ request && request.status ? request.status.name : '' }}</div>
+          <div class="caption grey--text">Status</div>
+          <div class="d-flex align-center">
+            <div
+              class="status-dot mr-1"
+              :class="request && request.status ? `${request.status.name.toLowerCase().split(' ').join('-')}-status` : ''"
+            ></div>
+            <div>{{ request && request.status ? request.status.name : '' }}</div>
+          </div>
         </div>
       </div>
       <v-btn
         v-if="action == 'edit'"
-        depressed
+        text
         small
         color="accent"
         @click="$router.back()"
-        class="caption text-none mr-2"
+        class="text-none mr-2"
       >Back</v-btn>
     </v-flex>
     <v-flex xs12 sm12 md12 mt-3>
@@ -31,35 +37,44 @@
               <v-flex xs12 sm12 md12>
                 <v-checkbox v-model="useMyDetails" hide-details label="Use my details"></v-checkbox>
               </v-flex>
+              <!-- Name -->
               <v-flex xs12 sm12 md6 class="mt-2">
-                <v-text-field
-                  label="Name*"
-                  class="pr-2"
-                  v-model="model.name"
-                  required
-                  :rules="[rules.required]"
-                ></v-text-field>
+                <v-text-field class="pr-2" v-model="model.name" required :rules="[rules.required]">
+                  <template v-slot:label>
+                    <span>Name</span>
+                    <span class="red--text">*</span>
+                  </template>
+                </v-text-field>
               </v-flex>
+              <!-- Country -->
               <v-flex xs12 sm12 md6 class="mt-2">
                 <country-select
                   v-model="model.country"
-                  label="Country*"
+                  label="Country"
                   class="pr-2"
-                  required
+                  :required="true"
                   :rules="[rules.required]"
                   @onSelect="model.country = $event;"
                 ></country-select>
               </v-flex>
+              <!-- Business Phone Number -->
               <v-flex xs12 sm12 md6 class="mt-2">
                 <v-text-field
-                  label="Business Phone Number* (e.g. +966-12-3456789)"
                   class="pr-2"
                   v-model="model.businessPhoneNumber"
                   required
                   :rules="[rules.required]"
                   v-mask="[masks.phoneNumber]"
-                ></v-text-field>
+                >
+                  <template v-slot:label>
+                    <span>
+                      Business Phone Number
+                      <span class="red--text">*</span> (e.g. +966-12-3456789)
+                    </span>
+                  </template>
+                </v-text-field>
               </v-flex>
+              <!-- Fax Number -->
               <v-flex xs12 sm12 md6 class="mt-2">
                 <v-text-field
                   label="Fax Number (e.g. +966-12-3456789)"
@@ -68,63 +83,123 @@
                   v-mask="[masks.phoneNumber]"
                 ></v-text-field>
               </v-flex>
+              <!-- Email Address -->
               <v-flex xs12 sm12 md6 class="mt-2">
                 <v-text-field
-                  label="Email Address*"
                   class="pr-2"
                   v-model="model.emailAddress"
                   required
                   :rules="[rules.required, rules.email]"
-                ></v-text-field>
+                >
+                  <template v-slot:label>
+                    <span>Email Address</span>
+                    <span class="red--text">*</span>
+                  </template>
+                </v-text-field>
               </v-flex>
+              <!-- Website -->
               <v-flex xs12 sm12 md6 class="mt-2">
                 <v-text-field label="Website" class="pr-2" v-model="model.website"></v-text-field>
               </v-flex>
               <v-flex xs12 sm12 md12 class="mt-5">
                 <span class="primary-color half-a-border-on-bottom">Permit Information</span>
               </v-flex>
+              <!-- Permit Type -->
               <v-flex xs12 sm12 md6 class="mt-2">
                 <select-field
                   v-model="model.permitType"
-                  label="Permit Type*"
+                  label="Permit Type"
                   type="permitTypes"
                   class="pr-2"
-                  required
+                  :required="true"
                   :rules="[rules.required]"
                   @onSelect="model.permitType = $event;getPermitRequirements()"
                 ></select-field>
               </v-flex>
+              <!-- Purpose of Landing/Overflying -->
               <v-flex xs12 sm12 md6 class="mt-2">
                 <select-field
                   v-model="model.purpose"
-                  label="Purpose of Landing/Overflying*"
+                  label="Purpose of Landing/Overflying"
                   type="purposeOfLanding"
                   class="pr-2"
-                  required
+                  :required="true"
                   :rules="[rules.required]"
                   @onSelect="model.purpose = $event;getPermitRequirements()"
                 ></select-field>
               </v-flex>
+              <!-- Aircraft -->
               <v-flex xs12 sm12 md6 class="mt-2">
                 <aircraft-select
                   v-model="model.aircraft"
-                  label="Aircraft*"
+                  label="Aircraft"
                   class="pr-2"
-                  required
+                  :required="true"
                   :rules="[rules.required]"
                   @onSelect="model.aircraft = $event"
                 ></aircraft-select>
               </v-flex>
+              <!-- Flight Type -->
               <v-flex xs12 sm12 md6 class="mt-2">
                 <select-field
                   v-model="model.flightType"
-                  label="Flight Type*"
+                  label="Flight Type"
                   type="flightTypes"
                   class="pr-2"
-                  required
+                  :required="true"
                   :rules="[rules.required]"
                   @onSelect="model.flightType = $event;getPermitRequirements()"
                 ></select-field>
+              </v-flex>
+              <v-flex xs12 sm12 md6 class="mt-2">
+                <v-menu
+                  ref="flightDateMenu"
+                  v-model="flightDateMenu"
+                  :close-on-content-click="false"
+                  :return-value.sync="model.flightDate"
+                  transition="scale-transition"
+                  offset-y
+                  full-width
+                  min-width="290px"
+                >
+                  <template v-slot:activator="{ on }">
+                    <v-text-field
+                      v-model="model.flightDate"
+                      prepend-inner-icon="mdi-calendar"
+                      readonly
+                      v-on="on"
+                      class="mr-2"
+                      required
+                      :rules="[rules.required]"
+                    >
+                      <template v-slot:label>
+                        <span>Flight Date</span>
+                        <span class="red--text">*</span>
+                      </template>
+                    </v-text-field>
+                  </template>
+                  <v-date-picker v-model="model.flightDate" no-title scrollable>
+                    <v-container>
+                      <v-flex xs12 sm12 md12>
+                        <v-text-field
+                          required
+                          :rules="[rules.required]"
+                          v-mask="{mask:mask,tokens:hexTokens}"
+                          v-model="flightTime"
+                          placeholder="HH:MM"
+                        ></v-text-field>
+                      </v-flex>
+                      <v-flex xs12 sm12 md12>
+                        <v-btn text color="primary" @click="flightDateMenu = false">Cancel</v-btn>
+                        <v-btn
+                          text
+                          color="primary"
+                          @click="$refs.flightDateMenu.save(model.flightDate+' '+flightTime)"
+                        >OK</v-btn>
+                      </v-flex>
+                    </v-container>
+                  </v-date-picker>
+                </v-menu>
               </v-flex>
               <v-flex xs12 sm12 md12 class="mt-5">
                 <span class="primary-color half-a-border-on-bottom">Permit Requirements</span>
@@ -137,9 +212,9 @@
                       v-model="permitReq.file"
                       class="mt-2"
                       :loading="permitReq.uploading"
-                      :error="permitReq.documentId == 'failed' || permitReq.documentId == 'required'"
-                      :error-messages="permitReq.documentId == 'failed' ? 'Failed to upload' : permitReq.documentId == 'required' ? 'Required.' : ''"
-                      :append-outer-icon="permitReq.documentId && permitReq.documentId != 'required' && permitReq.documentId != 'failed' ? 'mdi-download' : ''"
+                      :error="permitReq.status == 'failed' || permitReq.status == 'required'"
+                      :error-messages="permitReq.status == 'failed' ? 'Failed to upload' : permitReq.status == 'required' ? 'Required.' : ''"
+                      :append-outer-icon="permitReq.documentId ? 'mdi-download' : ''"
                       :rules="[rules.required]"
                       required
                       @change="uploadDocuments(permitReq)"
@@ -161,36 +236,46 @@
           </v-flex>
           <v-flex xs12 sm12 md6>
             <span class="half-a-border-on-bottom primary-color">ATC Route</span>
+            <div
+              class="caption grey--text mt-2"
+            >*Aircraft, Origin and Destination Airport and ATC Route fields are required to calcluate Navigation Route</div>
             <v-layout wrap mt-3>
+              <!-- Origin Airport -->
               <v-flex xs12 sm12 md6>
                 <airport-select
                   v-model="model.originAirport"
-                  label="Origin*"
+                  label="Origin"
                   class="pr-2"
-                  required
+                  :required="true"
                   :rules="[rules.required]"
                   @onSelect="model.originAirport = $event"
                 ></airport-select>
               </v-flex>
               <v-flex xs12 sm12 md6>
+                <!-- Destination Airport -->
                 <airport-select
                   v-model="model.destAirport"
-                  label="Destination*"
+                  label="Destination"
                   class="pr-2"
-                  required
+                  :required="true"
                   :rules="[rules.required]"
-                  @onSelect="model.originAirport = $event"
+                  @onSelect="model.destAirport = $event"
                 ></airport-select>
               </v-flex>
             </v-layout>
+            <!-- ATC Route -->
             <v-textarea
               v-model="model.atcRoute"
-              label="ATC Route*"
               class="pr-2 mt-3"
               required
               :rules="[rules.required]"
               :loading="calculatingNavCharge"
-            ></v-textarea>
+            >
+              <template v-slot:label>
+                <span>ATC Route</span>
+                <span class="red--text">*</span>
+              </template>
+            </v-textarea>
             <div class="d-flex justify-end">
               <v-btn
                 small
@@ -198,7 +283,7 @@
                 class="caption"
                 color="accent"
                 @click="onATCCalculations"
-                :disabled="!model.aircraft || !model.atcRoute"
+                :disabled="!model.originAirport || !model.destAirport || !model.aircraft || !model.atcRoute"
               >Calculate Navigation Route</v-btn>
             </div>
             <div id="mapCanvas" class="mt-5">
@@ -215,7 +300,7 @@
               <v-btn
                 depressed
                 color="primary"
-                :disabled="!valid || !model.navigationCharges || loading"
+                :disabled="!model.navigationCharges || loading"
                 @click="onRequest"
               >{{ requestBtnText }}</v-btn>
             </div>
@@ -234,8 +319,6 @@ import CountrySelect from '~/components/CountrySelect'
 import AircraftSelect from '~/components/AircraftSelect'
 import AirportSelect from '~/components/AirportSelect'
 import { mask } from 'vue-the-mask'
-import user from '~/testData'
-import points from '~/points'
 
 export default {
   props: ['action', 'requestBtnText', 'request'],
@@ -269,11 +352,11 @@ export default {
       purpose: '',
       flightType: '',
       aircraft: null,
-      atcRoute:
-        'TOVBA DCT BARDI/N0440F380 UM191 DIPOL UM871 MABUX UT257 LASPO UZ224 NINES UM134 LUXUR/N0440F390 UM134 ANB UA411 TUC UM978 SONAK M978 DOBIX UM978 GZO UM980 GODAK UL874 VANIX UP868 ARLOS UN4 SALUN Q680 DBA UM872 WEJ UL604 GAS UL308 DAROR UP559 NALPO P559 DESDI',
+      atcRoute: '',
       originAirport: '',
       destAirport: '',
-      navigationCharges: ''
+      navigationCharges: '',
+      flightDate: ''
     },
     payload: {},
     permitRequirements: [],
@@ -290,7 +373,19 @@ export default {
       routePoints: [],
       firPoints: []
     },
-    user: user
+    flightTime: '',
+    flightDateMenu: false,
+    mask: 'HH:MM',
+    hexTokens: {
+      H: {
+        pattern: /[0-23]/,
+        transform: v => v.toLocaleUpperCase()
+      },
+      M: {
+        pattern: /[0-59]/,
+        transform: v => v.toLocaleUpperCase()
+      }
+    }
   }),
 
   computed: {
@@ -304,17 +399,21 @@ export default {
 
     loading() {
       return this.$store.state.app.loading
+    },
+
+    user() {
+      return this.$store.state.auth.user
     }
   },
 
   watch: {
     useMyDetails() {
       if (this.useMyDetails) {
-        this.model.name = user.name
-        this.model.country = user.country
-        this.model.businessPhoneNumber = user.businessPhoneNumber
-        this.model.emailAddress = user.emailAddress
-        this.model.website = user.website
+        this.model.name = this.user.name
+        this.model.country = this.user.country
+        this.model.businessPhoneNumber = this.user.businessPhoneNumber
+        this.model.emailAddress = this.user.email
+        this.model.website = this.user.website
       } else {
         this.model.name = ''
         this.model.country = ''
@@ -336,6 +435,8 @@ export default {
         this.model.purpose = this.request.purposeOfLanding
         this.model.aircraft = this.request.aircraft
         this.model.flightType = this.request.flightType
+        this.model.originAirport = this.request.originAirport
+        this.model.destAirport = this.request.destAirport
         this.model.atcRoute = this.request.atcRoute
         this.model.navigationCharges = this.request.navigationCharges
         this.permitRequirements = this.request.requestRequirements.map(req => {
@@ -346,7 +447,8 @@ export default {
             documentId: req.documentId,
             documentName: req.documentName,
             file: [],
-            uploading: false
+            uploading: false,
+            status: ''
           }
         })
         this.points.routePoints = JSON.parse(this.request.routePoints)
@@ -383,95 +485,134 @@ export default {
         ...(this.model.purpose ? { POLId: this.model.purpose.id } : {})
       }
 
-      this.$axios.$post('requirement/filter', payload).then(response => {
-        this.permitRequirements = response.result
-        this.permitRequirements.forEach(req => {
-          this.$set(req, 'documentName', '')
-          this.$set(req, 'documentId', '')
-          this.$set(req, 'file', [])
-          this.$set(req, 'uploading', false)
+      if (payload.PermitTypeId || payload.FlightTypeId || payload.POLId) {
+        axios.post('requirement/filter', payload).then(response => {
+          if (response && response.data.success) {
+            this.permitRequirements = response.data.result
+            this.permitRequirements.forEach(req => {
+              this.$set(req, 'documentName', '')
+              this.$set(req, 'documentId', '')
+              this.$set(req, 'file', [])
+              this.$set(req, 'uploading', false)
+              this.$set(req, 'status', '')
+            })
+          }
         })
-      })
+      } else this.permitRequirements = []
     },
 
     onRequest() {
       let completeReq = this.permitRequirements.filter(
-        req => !req.documentId || req.documentId == 'failed'
+        req =>
+          !req.documentId || req.status == 'failed' || req.status == 'required'
       )
       if (completeReq.length > 0) {
         this.permitRequirements.forEach(req => {
           if (!req.documentId) {
-            req.documentId = 'required'
+            req.status = 'required'
             this.valid = false
           }
         })
-      } else {
-        this.payload = {
-          AircraftId: this.model.aircraft ? this.model.aircraft.id : null,
-          PermitTypeId: this.model.permitType ? this.model.permitType.id : null,
-          PurposeOfLandingId: this.model.purpose ? this.model.purpose.id : null,
-          FlightTypeId: this.model.flightType ? this.model.flightType.id : null,
-          CountryId: this.model.country ? this.model.country.id : null,
-          AirportId: this.model.airport ? this.model.airport.id : null,
-          ATCRoute: this.model.atcRoute ? this.model.atcRoute : null,
-          OriginAirport: this.model.originAirport
-            ? this.model.originAirport.id
-            : null,
-          DestAirport: this.model.destAirport
-            ? this.model.destAirport.id
-            : null,
-          OperatorName: this.model.name ? this.model.name : null,
-          OperatorPhone: this.model.businessPhoneNumber
-            ? this.model.businessPhoneNumber
-            : null,
-          OperatorEmail: this.model.emailAddress
-            ? this.model.emailAddress
-            : null,
-          OperatorFax: this.model.faxNumber ? this.model.faxNumber : null,
-          OperatorWebSite: this.model.website ? this.model.website : null,
-          NavigationCharges: this.model.navigationCharges
-            ? this.model.navigationCharges
-            : null,
-          requestRequirements: this.permitRequirements.map(req => {
-            return {
-              ...(this.action == 'edit' ? { requestId: this.request.id } : {}),
-              requirementId: req.id,
-              documentId: req.documentId,
-              documentName: req.documentName
-            }
-          }),
-          ...(this.action == 'edit' ? { id: this.request.id } : {}),
-          routePoints: JSON.stringify(this.points.routePoints),
-          FIRValidatedPoints: JSON.stringify({
-            firPoints: this.points.firPoints
-          })
-        }
 
-        if (this.action === 'add') this.$emit('generateRequest', this.payload)
-        else if (this.action === 'edit')
-          this.$emit('updateRequest', this.payload)
+        let incompleteReq = this.permitRequirements.some(
+          req =>
+            !req.documentId ||
+            req.status == 'required' ||
+            req.status == 'failed'
+        )
+        if (incompleteReq) {
+          window.getApp.snackbar = {
+            show: true,
+            text: 'Please attach and upload Permit Requirements.'
+          }
+        }
+      } else {
+        var flightDateConverted = new Date(this.model.flightDate)
+        if (this.$refs.form.validate()) {
+          this.payload = {
+            AircraftId: this.model.aircraft ? this.model.aircraft.id : null,
+            PermitTypeId: this.model.permitType
+              ? this.model.permitType.id
+              : null,
+            PurposeOfLandingId: this.model.purpose
+              ? this.model.purpose.id
+              : null,
+            FlightTypeId: this.model.flightType
+              ? this.model.flightType.id
+              : null,
+            CountryId: this.model.country ? this.model.country.id : null,
+            AirportId: this.model.airport ? this.model.airport.id : null,
+            ATCRoute: this.model.atcRoute ? this.model.atcRoute : null,
+            OriginAirportId: this.model.originAirport
+              ? this.model.originAirport.id
+              : null,
+            DestAirportId: this.model.destAirport
+              ? this.model.destAirport.id
+              : null,
+            OperatorName: this.model.name ? this.model.name : null,
+            OperatorPhone: this.model.businessPhoneNumber
+              ? this.model.businessPhoneNumber
+              : null,
+            OperatorEmail: this.model.emailAddress
+              ? this.model.emailAddress
+              : null,
+            OperatorFax: this.model.faxNumber ? this.model.faxNumber : null,
+            OperatorWebSite: this.model.website ? this.model.website : null,
+            FlightDate: flightDateConverted ? flightDateConverted : null,
+            NavigationCharges: this.model.navigationCharges
+              ? this.model.navigationCharges
+              : null,
+            requestRequirements: this.permitRequirements.map(req => {
+              return {
+                ...(this.action == 'edit'
+                  ? { requestId: this.request.id }
+                  : {}),
+                requirementId: req.id,
+                documentId: req.documentId,
+                documentName: req.documentName
+              }
+            }),
+            ...(this.action == 'edit' ? { id: this.request.id } : {}),
+            routePoints: JSON.stringify(this.points.routePoints),
+            FIRValidatedPoints: JSON.stringify({
+              firPoints: this.points.firPoints
+            })
+          }
+
+          if (this.action === 'add') this.$emit('generateRequest', this.payload)
+          else if (this.action === 'edit')
+            this.$emit('updateRequest', this.payload)
+        } else {
+          window.getApp.snackbar = {
+            show: true,
+            text: 'Please fill out the required fields.'
+          }
+        }
       }
     },
 
     uploadDocuments(req) {
       if (req.file) {
-        console.log('req.file', req.file)
         req.uploading = true
         const fd = new FormData()
         fd.append('file', req.file)
-        this.$axios
-          .$post('document/uploadDocuments', fd)
+        axios
+          .post('document/uploadDocuments', fd)
           .then(response => {
-            if (response.success) {
-              req.documentId = response.result[0].objectId
-              req.documentName = response.result[0].fileName
+            if (response && response.data.success) {
+              req.documentId = response.data.result[0].objectId
+              req.documentName = response.data.result[0].fileName
+              req.status = ''
             } else {
-              req.documentId = 'failed'
+              req.documentId = ''
               req.documentName = ''
+              req.status = 'failed'
             }
           })
           .catch(error => {
-            req.documentId = 'failed'
+            req.documentId = ''
+            req.documentName = ''
+            req.status = 'failed'
           })
           .finally(() => {
             req.uploading = false
@@ -482,57 +623,72 @@ export default {
     deleteDocument(doc) {
       doc.documentId = ''
       doc.documentName = ''
+      doc.status = ''
     },
 
     onATCCalculations() {
       this.calculatingNavCharge = true
-      this.analyzeNavRoute().then(response => {
-        this.flightPoints = response.result.routePoints.mappingPoints.map(
-          point => {
-            return [point.point.latitude, point.point.longitude]
-          }
-        )
-        this.points.routePoints = response.result.routePoints
-        this.getSaudiFir(response.result).then(resp => {
-          this.saudiPoints = resp.result.firPoints.map(p => {
-            return [p.point.latitude, p.point.longitude]
-          })
-          this.points.firPoints = resp.result.firPoints
-          this.calculateDistance(resp.result).then(res => {
-            this.calculateNavCharge(res.result)
-              .then(r => {
-                this.model.navigationCharges = r.result
+      this.analyzeNavRoute()
+        .then(response => {
+          this.flightPoints = response.data.result.routePoints.mappingPoints.map(
+            point => {
+              return [point.point.latitude, point.point.longitude]
+            }
+          )
+          this.points.routePoints = response.data.result.routePoints
+          this.getSaudiFir(response.data.result)
+            .then(resp => {
+              this.saudiPoints = resp.data.result.firPoints.map(p => {
+                return [p.point.latitude, p.point.longitude]
               })
-              .finally(() => {
-                this.calculatingNavCharge = false
-              })
-          })
+              this.points.firPoints = resp.data.result.firPoints
+              this.calculateDistance(resp.data.result)
+                .then(res => {
+                  this.calculateNavCharge(res.data.result)
+                    .then(r => {
+                      this.model.navigationCharges = r.data.result
+                    })
+                    .catch(() => {
+                      this.calculatingNavCharge = false
+                    })
+                    .finally(() => {
+                      this.calculatingNavCharge = false
+                    })
+                })
+                .catch(() => {
+                  this.calculatingNavCharge = false
+                })
+            })
+            .catch(() => {
+              this.calculatingNavCharge = false
+            })
         })
-      })
+        .catch(() => {
+          this.calculatingNavCharge = false
+        })
     },
 
     analyzeNavRoute() {
       let payload = {
-        FromIATA: 'OPO',
-        ToIATA: 'DWC',
+        FromIATA: this.model.originAirport.iata,
+        ToIATA: this.model.destAirport.iata,
         ATCRoute: this.model.atcRoute
       }
       return new Promise((resolve, reject) => {
-        this.$axios
-          .$post('GIS/AnalyseNavigationRoute', payload)
+        axios
+          .post('GIS/AnalyseNavigationRoute', payload)
           .then(response => {
-            if (response.success) {
-              resolve(response)
-            } else {
-              this.snackbar = {
+            if (response && response.data.success) resolve(response)
+            else {
+              window.getApp.snackbar = {
                 show: true,
-                timeout: 6000,
-                text: response.message,
-                actions: ['Close']
+                text: response.data.message
               }
+              reject()
             }
           })
           .catch(error => {
+            this.calculatingNavCharge = false
             reject(error)
           })
       })
@@ -540,21 +696,16 @@ export default {
 
     getSaudiFir(payload) {
       return new Promise((resolve, reject) => {
-        this.$axios
-          .$post('GIS/SaudiFIR', payload)
+        axios
+          .post('GIS/SaudiFIR', payload)
           .then(response => {
-            if (response.success) {
-              resolve(response)
-            } else {
-              this.snackbar = {
-                show: true,
-                timeout: 6000,
-                text: response.message,
-                actions: ['Close']
-              }
+            if (response && response.data.success) resolve(response)
+            else {
+              reject()
             }
           })
           .catch(error => {
+            this.calculatingNavCharge = false
             reject(error)
           })
       })
@@ -562,21 +713,16 @@ export default {
 
     calculateDistance(payload) {
       return new Promise((resolve, reject) => {
-        this.$axios
-          .$post('GIS/CalculateDistanceSaudi', payload)
+        axios
+          .post('GIS/CalculateDistanceSaudi', payload)
           .then(response => {
-            if (response.success) {
-              resolve(response)
-            } else {
-              this.snackbar = {
-                show: true,
-                timeout: 6000,
-                text: response.message,
-                actions: ['Close']
-              }
+            if (response && response.data.success) resolve(response)
+            else {
+              reject()
             }
           })
           .catch(error => {
+            this.calculatingNavCharge = false
             reject(error)
           })
       })
@@ -592,43 +738,41 @@ export default {
       }
 
       return new Promise((resolve, reject) => {
-        this.$axios
-          .$post('request/CalculateNavCharge', payload)
+        axios
+          .post('request/CalculateNavCharge', payload)
           .then(response => {
-            if (response.success) {
-              resolve(response)
-            } else {
-              this.snackbar = {
-                show: true,
-                timeout: 6000,
-                text: response.message,
-                actions: ['Close']
-              }
+            if (response && response.data.success) resolve(response)
+            else {
+              reject()
             }
           })
           .catch(error => {
+            this.calculatingNavCharge = false
             reject(error)
           })
       })
     },
 
     getFile(doc) {
-      console.log('doc', doc)
+      if (
+        !doc.documentId ||
+        doc.status == 'failed' ||
+        doc.status == 'required'
+      ) {
+        return
+      }
+
       doc.uploading = true
       var files = []
-      this.$axios
-        .$request({
-          url: `Document/download/${doc.documentId}`,
-          method: 'GET',
-          responseType: 'blob'
-        })
+      axios({
+        url: `Document/download/${doc.documentId}`,
+        method: 'GET',
+        responseType: 'blob'
+      })
         .then(response => {
           const blob = new Blob([response], { type: 'application/pdf' })
           var file = new File([blob], doc.documentName)
           files.push(file)
-        })
-        .catch(error => {
-          reject(error)
         })
         .finally(() => {
           doc.uploading = false
@@ -638,33 +782,9 @@ export default {
     },
 
     downloadDocument(docId) {
-      this.$store.dispatch('app/setLoading', true)
-      this.$axios
-        .$request({
-          url: `Document/download/${docId}`,
-          method: 'GET',
-          responseType: 'blob' // important
-        })
-        .then(response => {
-          const blob = new Blob([response], {
-            type: 'application/pdf'
-          })
-          const a = document.createElement('a')
-          a.href = window.URL.createObjectURL(blob)
-          a.style.position = 'fixed'
-          a.target = '_blank'
-          document.body.appendChild(a)
-          a.click()
-          document.body.removeChild(a)
-        })
-        .finally(() => {
-          this.$store.dispatch('app/setLoading', false)
-        })
+      const API_DownloadPDF = `${process.env.apiUrl}Document/download/${docId}`
+      window.open(API_DownloadPDF)
     }
   }
 }
 </script>
-
-<style lang="scss">
-@import '@/assets/global.scss';
-</style>

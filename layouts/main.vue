@@ -1,9 +1,18 @@
 <template>
   <v-app>
+    <v-progress-linear
+      :active="loading"
+      :indeterminate="loading"
+      absolute
+      top
+      color="accent accent-4"
+      style="z-index:9"
+      height="3"
+    ></v-progress-linear>
     <v-navigation-drawer
       v-model="drawer"
       id="appDrawer"
-      dark
+      light
       :mini-variant="miniVariant"
       :clipped="clipped"
       fixed
@@ -11,19 +20,27 @@
       disable-resize-watcher
     >
       <v-list>
-        <v-subheader v-if="!miniVariant" class="subtitle-1">
+        <v-subheader v-if="!miniVariant" class="subtitle-1 d-flex justify-center">
+          <img
+            src="https://eservices.gaca.gov.sa/GACA-resources/images/layout/logoFinal.png"
+            alt
+            width="100"
+            class="mr-2"
+          />
           <span class="accent-color">Permit</span>
-          <span>Pad</span>
+          <span class="primary-color">Pad</span>
         </v-subheader>
         <v-subheader v-if="miniVariant" class="permitpad__logo subtitle-1 center">
-          <v-avatar color="accent" :size="34">
-            <span class="accent-color">P</span>
+          <v-avatar color="primary" :size="34">
+            <span class="primary-color">P</span>
           </v-avatar>
         </v-subheader>
-        <div class="drawer__spacer"></div>
+        <div class="d-flex justify-center accent--text mt-8 mb-8" v-if="isAdmin">Admin</div>
+        <div class="drawer__spacer" v-else></div>
+
         <template v-for="(item, i) in items">
           <v-list-item
-            v-if="item.role === 'Admin' && isAdmin || (item.role === 'User' && !isAdmin) || item.role === 'Both'"
+            v-if="item.role === 'Admin' && isAdmin || (item.role === 'Agent' && !isAdmin) || item.role === 'Both'"
             :key="i"
             :to="item.to"
             router
@@ -49,18 +66,11 @@
         </v-list-item>
       </v-list>
     </v-navigation-drawer>
-    <v-app-bar :clipped-left="false" fixed app color="white">
+    <v-app-bar :clipped-left="false" fixed app color="primary">
       <v-app-bar-nav-icon v-if="!drawer" @click="drawer = !drawer" color="accent"></v-app-bar-nav-icon>
-      <v-toolbar-title class="accent-color">{{ title }}</v-toolbar-title>
-      <!-- <v-progress-linear
-        :active="loading"
-        :indeterminate="loading"
-        absolute
-        bottom
-        color="primary accent-4"
-      ></v-progress-linear>-->
+      <v-toolbar-title class="white--text">{{ title }}</v-toolbar-title>
       <v-spacer />
-      <div class="caption mr-2 secondary-color" text>Geraldine Bacang</div>
+      <div class="caption mr-2 white--text" text>{{ user ? user.name : '' }}</div>
       <v-menu
         v-model="userprofileMenu"
         offset-y
@@ -70,38 +80,57 @@
         style="z-index: 999;"
       >
         <template v-slot:activator="{on}">
-          <v-avatar color="accent" :size="28" v-on="on" style="cursor:pointer;">
-            <span class="white--text">G</span>
+          <v-avatar
+            :color="user && user.displayPictureId ? 'white' : 'accent'"
+            :size="28"
+            v-on="on"
+            style="cursor:pointer;"
+          >
+            <span
+              v-if="user && !user.displayPictureId"
+              class="white--text"
+            >{{ user ? user.name.charAt(0) : '' }}</span>
+            <template v-else>
+              <v-img
+                v-if="user && user.displayPictureId"
+                :src="
+                `${env}document/${
+                   user.displayPictureId
+                }`
+              "
+                alt
+              ></v-img>
+            </template>
           </v-avatar>
         </template>
-        <v-card dark color="secondaryDarker">
+        <v-card light color="white">
           <v-card-title class="d-flex flex-column align-center">
             <v-avatar color="accent" size="80">
-              <span class="white--text">G</span>
+              <span class="white--text">{{ user ? user.name.charAt(0) : '' }}</span>
             </v-avatar>
-            <div class="body-1 mt-3 white--text">Geraldine Bacang</div>
-            <div class="caption accent-color">geraldine.bacang@click.aero</div>
+            <div class="body-1 mt-3">{{ user ? user.name: '' }}</div>
+            <div class="caption primary--text">{{ user ? user.email : '' }}</div>
           </v-card-title>
           <v-card-actions class="d-flex flex-column align-center mt-5">
             <v-btn
               outlined
               x-small
-              color="accent"
+              color="primary"
               width="250px"
               class="mb-3 ml-0 caption"
               to="/profile"
             >Profile</v-btn>
-            <v-btn
+            <!-- <v-btn
               outlined
               x-small
               color="accent"
               width="250px"
               class="mb-3 ml-0 caption"
-            >Change Password</v-btn>
+            >Change Password</v-btn>-->
             <v-btn
               outlined
               x-small
-              color="accent"
+              color="primary"
               width="250px"
               class="mb-3 ml-0 caption"
               @click="logout"
@@ -112,11 +141,13 @@
     </v-app-bar>
     <v-content>
       <perfect-scrollbar>
-        <v-container class="px-8 pt-5">
+        <div class="pa-3 pt-2">
           <nuxt />
-        </v-container>
+        </div>
       </perfect-scrollbar>
     </v-content>
+
+    <snackbar :snackbar="snackbar"></snackbar>
   </v-app>
 </template>
 
@@ -143,13 +174,13 @@ export default {
         icon: 'mdi-file-document-box-plus',
         title: 'New Request',
         to: '/new-request',
-        role: 'User'
+        role: 'Agent'
       },
       {
         icon: 'mdi-file-document-box-multiple',
         title: 'Statements',
         to: '/statements',
-        role: 'User'
+        role: 'Agent'
       },
       {
         icon: 'mdi-account-group',
@@ -167,7 +198,14 @@ export default {
     miniVariant: false,
     right: true,
     rightDrawer: false,
-    userprofileMenu: false
+    userprofileMenu: false,
+    snackbar: {
+      show: false,
+      text: null,
+      color: null,
+      timeout: 6000
+    },
+    env: process.env.apiUrl
   }),
 
   computed: {
@@ -176,11 +214,15 @@ export default {
     },
 
     isAdmin() {
-      return this.$store.state.app.isAdmin
+      return this.$store.state.auth.isAdmin
     },
 
     loading() {
       return this.$store.state.app.loading
+    },
+
+    user() {
+      return this.$store.state.auth.user
     }
   },
 
@@ -191,38 +233,43 @@ export default {
 
   methods: {
     getCategories() {
-      this.$axios.$get(`Common/GetListByType?type=All`).then(response => {
-        if (response.success) {
+      axios.get(`Common/GetListByType?type=All`).then(response => {
+        if (response && response.data.success) {
           this.$store.dispatch(
             'category/setRequestStatuses',
-            _.filter(response.result, { type: 'Status' })
+            _.filter(response.data.result, { type: 'Status' })
           )
           this.$store.dispatch(
             'category/setFlightTypes',
-            _.filter(response.result, { type: 'FlightType' })
+            _.filter(response.data.result, { type: 'FlightType' })
           )
           this.$store.dispatch(
             'category/setPermitTypes',
-            _.filter(response.result, { type: 'PermitType' })
+            _.filter(response.data.result, { type: 'PermitType' })
           )
           this.$store.dispatch(
             'category/setPurposeOfLanding',
-            _.filter(response.result, { type: 'PurposeOfLanding' })
+            _.filter(response.data.result, { type: 'PurposeOfLanding' })
           )
           this.$store.dispatch(
             'category/setActions',
-            _.filter(response.result, { type: 'Actions' })
+            _.filter(response.data.result, { type: 'Actions' })
           )
           this.$store.dispatch(
             'category/setClearanceTypes',
-            _.filter(response.result, { type: 'ClearanceType' })
+            _.filter(response.data.result, { type: 'ClearanceType' })
           )
-        } else {
+          this.$store.dispatch(
+            'category/setUserTypes',
+            _.filter(response.data.result, { type: 'UserType' })
+          )
         }
       })
     },
     logout() {
-      this.$router.push({ name: 'login' })
+      this.$store.dispatch('auth/deleteToken').then(() => {
+        this.$router.push({ path: '/login' })
+      })
     }
   }
 }
@@ -230,9 +277,15 @@ export default {
 
 <style lang="scss">
 @import '@/assets/global.scss';
+.v-content {
+  background: url('~assets/images/bg-texture.svg');
+}
+
 #appDrawer {
-  background: $secondaryDarker;
+  background: #ffffff;
   height: 100vh !important;
+
+  @include paperShadow;
 
   .permitpad__logo {
     justify-content: center;
@@ -253,11 +306,10 @@ export default {
   }
 
   .v-list-item--active {
-    // color: rgba($accent, 0.5);
-    color: rgba(255, 255, 255, 0.3);
+    border-right: 3px solid #009668;
     i,
     .v-list-item__title {
-      color: $accent;
+      color: $primary;
     }
   }
 }

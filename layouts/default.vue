@@ -1,72 +1,59 @@
 <template>
   <v-app>
-    <v-layout row class="default-layout">
-      <v-flex xs12 sm8 md6>
-        <img
-          src="~/assets/images/permitpad_logo.png"
-          class="logo"
-          width="100"
-          alt
-          v-if="$route.name != 'login'"
-        />
-        <nuxt />
-      </v-flex>
-      <v-flex xs12 sm8 md6 class="default-layout-image d-flex flex-column align-end">
-        <div class="mt-12">
-          <img src="~/assets/images/pixelmap.png" alt />
-        </div>
-      </v-flex>
-    </v-layout>
+    <v-progress-linear
+      :active="loading"
+      :indeterminate="loading"
+      absolute
+      top
+      color="accent accent-4"
+      style="z-index:9"
+      height="3"
+    ></v-progress-linear>
+    <v-content>
+      <v-layout row class="default-layout">
+        <v-flex xs12 sm12 md12>
+          <div class="d-flex align-center pt-3 pl-10">
+            <img
+              src="https://eservices.gaca.gov.sa/GACA-resources/images/layout/logoFinal.png"
+              alt
+              width="150"
+            />
+            <img
+              src="~/assets/images/permitpad_logo.png"
+              class="logo ml-3"
+              width="100"
+              alt
+              v-if="$route.name != 'login'"
+            />
+          </div>
+          <nuxt />
+        </v-flex>
+      </v-layout>
+    </v-content>
+
+    <snackbar :snackbar="snackbar"></snackbar>
   </v-app>
 </template>
 
 <script>
 export default {
-  data: () => ({}),
+  data: () => ({
+    snackbar: {
+      show: false,
+      text: null,
+      color: null,
+      timeout: 6000
+    }
+  }),
+
   computed: {
     loading() {
       return this.$store.state.app.loading
     }
   },
-  mounted() {
-    this.getCategories()
-  },
-  methods: {
-    getCategories() {
-      this.$axios.$get(`Common/GetListByType?type=All`).then(response => {
-        if (response.success) {
-          this.$store.dispatch(
-            'category/setRequestStatuses',
-            _.filter(response.result, { type: 'Status' })
-          )
-          this.$store.dispatch(
-            'category/setFlightTypes',
-            _.filter(response.result, { type: 'FlightType' })
-          )
-          this.$store.dispatch(
-            'category/setPermitTypes',
-            _.filter(response.result, { type: 'PermitType' })
-          )
-          this.$store.dispatch(
-            'category/setPurposeOfLanding',
-            _.filter(response.result, { type: 'PurposeOfLanding' })
-          )
-          this.$store.dispatch(
-            'category/setActions',
-            _.filter(response.result, { type: 'Actions' })
-          )
-          this.$store.dispatch(
-            'category/setClearanceTypes',
-            _.filter(response.result, { type: 'ClearanceType' })
-          )
-          this.$store.dispatch(
-            'category/setUserTypes',
-            _.filter(response.result, { type: 'UserType' })
-          )
-        } else {
-        }
-      })
-    }
+
+  created() {
+    window.getApp = this
   }
 }
 </script>
@@ -76,7 +63,7 @@ export default {
 .default-layout {
   height: 100vh;
   overflow-y: hidden;
-  padding: 1rem 2rem;
+  // padding: 1rem 2rem;
 
   &-image {
     height: 100%;

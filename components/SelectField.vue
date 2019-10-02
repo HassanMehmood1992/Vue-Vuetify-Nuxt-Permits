@@ -5,16 +5,22 @@
     dense
     return-object
     :items="items"
-    :label="label"
     :loading="loading"
     :disabled="loading"
     :rules="rules"
-  ></v-select>
+    clearable
+    :required="required"
+  >
+    <template v-slot:label>
+      <span>{{ label }}</span>
+      <span v-if="required" class="red--text">*</span>
+    </template>
+  </v-select>
 </template>
 
 <script>
 export default {
-  props: ['value', 'label', 'type', 'rules'],
+  props: ['value', 'label', 'type', 'rules', 'required'],
   data: () => ({
     loading: false
   }),

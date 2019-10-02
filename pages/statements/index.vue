@@ -1,5 +1,5 @@
 <template>
-  <v-layout wrap class="statements-page">
+  <v-layout wrap class="statements-page pa-5 white-background">
     <v-flex xs12 sm12 md12 class="d-flex justify-space-between">
       <v-text-field placeholder="Search" class="pr-5" hide-details>
         <template v-slot:prepend-inner>
@@ -115,7 +115,7 @@
               <v-btn text color="primary" @click="$refs.endDateMenu.save(endDate)">OK</v-btn>
             </v-date-picker>
           </v-menu>
-          <v-btn depressed x-small color="primary" class="overline">Change Period</v-btn>
+          <v-btn depressed x-small color="primary" class="caption">Change Period</v-btn>
         </div>
       </div>
     </v-flex>
@@ -140,40 +140,40 @@
         <template v-slot:body="{ items }">
           <tbody>
             <tr v-for="(item, index) in items" :key="index">
-              <td class="overline">{{ item.billingRef }}</td>
-              <td class="overline px-1">{{ item.date }}</td>
-              <td class="overline">{{ item.time }}</td>
-              <td class="overline">{{ item.aircraftId }}</td>
-              <td class="overline">{{ item.flightNumber }}</td>
-              <td class="overline">{{ item.originCode }}</td>
-              <td class="overline">{{ item.destCode }}</td>
-              <td class="overline">{{ item.entryPoint }}</td>
-              <td class="overline">{{ item.exitPoint }}</td>
-              <td class="overline">{{ item.distanceKm }}</td>
-              <td class="overline">{{ item.aircraftType }}</td>
-              <td class="overline">{{ item.weightFactor }}</td>
-              <td class="overline">{{ item.distanceFactor }}</td>
-              <td class="overline">{{ item.flightType }}</td>
-              <td class="overline primary-color">{{ item.enrouteCharge }}</td>
-              <td class="overline primary-color">{{ item.approachCharge }}</td>
-              <td class="overline primary-color">{{ item.flightTotalCharge }}</td>
-              <td class="overline primary-color">{{ item.vatAmount }}</td>
+              <td class="caption">{{ item.billingRef }}</td>
+              <td class="caption px-1">{{ item.date }}</td>
+              <td class="caption">{{ item.time }}</td>
+              <td class="caption">{{ item.aircraftId }}</td>
+              <td class="caption">{{ item.flightNumber }}</td>
+              <td class="caption">{{ item.originCode }}</td>
+              <td class="caption">{{ item.destCode }}</td>
+              <td class="caption">{{ item.entryPoint }}</td>
+              <td class="caption">{{ item.exitPoint }}</td>
+              <td class="caption">{{ item.distanceKm }}</td>
+              <td class="caption">{{ item.aircraftType }}</td>
+              <td class="caption">{{ item.weightFactor }}</td>
+              <td class="caption">{{ item.distanceFactor }}</td>
+              <td class="caption">{{ item.flightType }}</td>
+              <td class="caption primary-color">{{ item.enrouteCharge }}</td>
+              <td class="caption primary-color">{{ item.approachCharge }}</td>
+              <td class="caption primary-color">{{ item.flightTotalCharge }}</td>
+              <td class="caption primary-color">{{ item.vatAmount }}</td>
             </tr>
             <tr>
-              <td class="overline"></td>
-              <td class="overline px-1"></td>
-              <td class="overline"></td>
-              <td class="overline"></td>
-              <td class="overline"></td>
-              <td class="overline"></td>
-              <td class="overline"></td>
-              <td class="overline"></td>
-              <td class="overline"></td>
-              <td class="overline"></td>
-              <td class="overline"></td>
-              <td class="overline"></td>
-              <td class="overline"></td>
-              <td class="overline"></td>
+              <td class="caption"></td>
+              <td class="caption px-1"></td>
+              <td class="caption"></td>
+              <td class="caption"></td>
+              <td class="caption"></td>
+              <td class="caption"></td>
+              <td class="caption"></td>
+              <td class="caption"></td>
+              <td class="caption"></td>
+              <td class="caption"></td>
+              <td class="caption"></td>
+              <td class="caption"></td>
+              <td class="caption"></td>
+              <td class="caption"></td>
               <td class="caption primary-color font-weight-bold">16, 9331</td>
               <td class="caption primary-color font-weight-bold">16, 9331</td>
               <td class="caption primary-color font-weight-bold">16, 9331</td>
@@ -394,6 +394,12 @@ export default {
     startDateMenu: false,
     endDateMenu: false
   }),
+
+  head() {
+    return {
+      titleTemplate: `${this.title} - %s`
+    }
+  },
 
   mounted() {
     this.$store.dispatch('app/setAppTitle', this.title)

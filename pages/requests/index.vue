@@ -1,8 +1,8 @@
 <template>
-  <v-container class="pa-0">
+  <div class="white-background pa-5">
     <!-- Search and filter  -->
-    <v-layout wrap>
-      <v-flex md2>
+    <v-layout wrap d-flex align-center justify-space-between>
+      <v-flex md4 d-flex align-center>
         <v-text-field
           label="Search"
           v-model="selectedFilters.search"
@@ -13,109 +13,85 @@
             <v-icon>mdi-magnify</v-icon>
           </template>
         </v-text-field>
+        <v-btn depressed x-small color="accent" class="caption" @click="searchRequest">Search</v-btn>
+        <v-btn small text color="accent" @click="clearFilters()" class="caption ml-1">Reset</v-btn>
       </v-flex>
-      <v-flex md2>
-        <v-menu
-          v-model="selectedFilters.createdDateModal"
-          :close-on-content-click="false"
-          :nudge-right="40"
-          transition="scale-transition"
-          offset-y
-          full-width
-          min-width="290px"
-        >
-          <template v-slot:activator="{ on }">
-            <v-text-field
-              v-model="selectedFilters.createdDate"
-              label="Creation Date"
-              class="mr-3"
-              readonly
-              v-on="on"
+      <v-flex order-md8>
+        <v-layout wrap d-flex align-center justify-end>
+          <v-flex md3>
+            <v-menu
+              v-model="selectedFilters.createdDateModal"
+              :close-on-content-click="false"
+              :nudge-right="40"
+              transition="scale-transition"
+              offset-y
+              full-width
+              min-width="290px"
             >
-              <template v-slot:prepend-inner>
-                <v-icon>mdi-calendar-range-outline</v-icon>
+              <template v-slot:activator="{ on }">
+                <v-text-field
+                  v-model="createdDateFormatted"
+                  label="Creation Date"
+                  class="mr-3"
+                  readonly
+                  v-on="on"
+                  :append-icon="createdDateFormatted ? 'mdi-close' : ''"
+                  @click:append="clearDateFilter('created')"
+                >
+                  <template v-slot:prepend-inner>
+                    <v-icon>mdi-calendar-range-outline</v-icon>
+                  </template>
+                </v-text-field>
               </template>
-            </v-text-field>
-          </template>
-          <v-date-picker
-            no-title
-            scrollable
-            v-model="selectedFilters.createdDate"
-            @input="dateFilter('created')"
-          ></v-date-picker>
-        </v-menu>
-      </v-flex>
-      <v-flex md2>
-        <!-- <v-text-field
-          color="accent"
-          prepend-icon="mdi-calendar-range-outline"
-          label="Expiry Date"
-          class="mr-3"
-        ></v-text-field>-->
-        <v-menu
-          v-model="selectedFilters.expiryDateModal"
-          :close-on-content-click="false"
-          :nudge-right="40"
-          transition="scale-transition"
-          offset-y
-          full-width
-          min-width="290px"
-        >
-          <template v-slot:activator="{ on }">
-            <v-text-field
-              v-model="selectedFilters.expiryDate"
-              class="mr-3"
-              label="Expiry Date"
-              readonly
-              v-on="on"
+              <v-date-picker
+                no-title
+                scrollable
+                v-model="selectedFilters.createdDate"
+                @input="dateFilter('created')"
+              ></v-date-picker>
+            </v-menu>
+          </v-flex>
+          <v-flex md3>
+            <v-menu
+              v-model="selectedFilters.expiryDateModal"
+              :close-on-content-click="false"
+              :nudge-right="40"
+              transition="scale-transition"
+              offset-y
+              full-width
+              min-width="290px"
             >
-              <template v-slot:prepend-inner>
-                <v-icon>mdi-calendar-range-outline</v-icon>
+              <template v-slot:activator="{ on }">
+                <v-text-field
+                  v-model="expiryDateFormatted"
+                  class="mr-3"
+                  label="Expiry Date"
+                  readonly
+                  v-on="on"
+                  :append-icon="expiryDateFormatted ? 'mdi-close' : ''"
+                  @click:append="clearDateFilter('expiry')"
+                >
+                  <template v-slot:prepend-inner>
+                    <v-icon>mdi-calendar-range-outline</v-icon>
+                  </template>
+                </v-text-field>
               </template>
-            </v-text-field>
-          </template>
-          <v-date-picker
-            no-title
-            scrollable
-            v-model="selectedFilters.expiryDate"
-            @input="dateFilter('expiry')"
-          ></v-date-picker>
-        </v-menu>
-      </v-flex>
-      <v-flex md2 class="align-self-center">
-        <!-- <div class="accent-color" @click="clearFilters()">
-          <span class="clearall">Clear all</span>
-        </div>-->
-        <v-btn small text color="accent" @click="clearFilters()" class="caption">Clear all</v-btn>
-      </v-flex>
-    </v-layout>
-    <!-- Status Filter  -->
-    <v-layout>
-      <v-flex md9>
-        <div class="accent-color">Status</div>
-        <v-flex v-show="loadingStatus" class="accent-color">
-          <v-progress-circular indeterminate width="2" size="20"></v-progress-circular>
-        </v-flex>
-
-        <template v-show="!loadingStatus" v-for="(status, i) in requestStatus">
-          <v-chip
-            @click="updateStatus(status,i)"
-            depressed
-            small
-            :key="i"
-            tile
-            :class="status.selected ? 'selectedStatus' : 'disabledStatus'"
-            class="body-2 text-none mr-2 mt-2 no-border-radius"
-          >{{status.name}}</v-chip>
-        </template>
+              <v-date-picker
+                no-title
+                scrollable
+                v-model="selectedFilters.expiryDate"
+                @input="dateFilter('expiry')"
+              ></v-date-picker>
+            </v-menu>
+          </v-flex>
+        </v-layout>
       </v-flex>
     </v-layout>
 
     <!-- Type Filters  -->
-
-    <v-layout mt-4>
-      <v-flex md4>
-        <div class="accent-color">Flight Type</div>
+    <v-layout wrap>
+      <v-flex xs12 sm12 md4>
+        <div class="accent-color caption">Flight Type</div>
         <div>
           <v-flex v-show="loadingStatus" class="accent-color">
             <v-progress-circular indeterminate width="2" size="20"></v-progress-circular>
@@ -128,14 +104,14 @@
               small
               tile
               :class="isFlightTypeSelected(status) ? 'selectedStatus' : 'disabledStatus'"
-              class="body-2 text-none caption mt-2 mr-2 no-border-radius"
+              class="caption text-none caption mt-2 mr-2 no-border-radius"
             >{{status.name}}</v-chip>
           </template>
         </div>
       </v-flex>
 
-      <v-flex md4>
-        <div class="accent-color">Permit Type</div>
+      <v-flex xs12 sm12 md2>
+        <div class="accent-color caption">Permit Type</div>
         <div>
           <v-flex v-show="loadingStatus" class="accent-color">
             <v-progress-circular indeterminate width="2" size="20"></v-progress-circular>
@@ -148,40 +124,36 @@
               small
               tile
               :class="isPermitTypeSelected(status) ? 'selectedStatus' : 'disabledStatus'"
-              class="body-2 text-none caption mt-2 no-border-radius mr-2"
+              class="caption text-none caption mt-2 no-border-radius mr-2"
             >{{status.name}}</v-chip>
           </template>
         </div>
       </v-flex>
+      <v-flex xs12 sm12 md6>
+        <div class="accent-color caption">Status</div>
+        <v-flex v-show="loadingStatus" class="accent-color">
+          <v-progress-circular indeterminate width="2" size="20"></v-progress-circular>
+        </v-flex>
+
+        <template v-show="!loadingStatus" v-for="(status, i) in requestStatus">
+          <v-chip
+            @click="updateStatus(status,i)"
+            depressed
+            small
+            :key="i"
+            tile
+            :class="status.selected ? 'selectedStatus' : 'disabledStatus'"
+            class="caption text-none mr-2 mt-2 no-border-radius"
+          >{{status.name}}</v-chip>
+        </template>
+      </v-flex>
     </v-layout>
 
-    <!-- <v-layout mt-4>
-      <v-flex md2 class="mr-2">
-        <v-btn
-          depressed
-          small
-          outlined
-          block
-          color="primary"
-          class="body-2 text-none caption"
-        >Filter</v-btn>
-      </v-flex>
-      <v-flex md2>
-        <v-btn
-          depressed
-          small
-          outlined
-          block
-          color="primary"
-          class="body-2 text-none caption"
-          @click="clearFilters()"
-        >Clear</v-btn>
-      </v-flex>
-    </v-layout>-->
-
     <!-- requests data  -->
-
-    <v-layout mt-4>
+    <v-layout wrap mt-8>
+      <v-flex md12 d-flex align-center justify-space-between>
+        <div class="caption primary--text">{{ `${totalRequests} Requests` }}</div>
+      </v-flex>
       <v-flex md12>
         <v-data-table
           no-data-text="No Data Found"
@@ -190,7 +162,7 @@
           :options.sync="options"
           :footer-props="{
           itemsPerPageOptions:[5,10,15],
-          
+
           }"
           :page.sync="myPageNumber"
           :server-items-length="totalRequests"
@@ -203,20 +175,70 @@
           <template v-else v-slot:body="{ items }">
             <tbody>
               <tr v-for="item in items" :key="item.id">
-                <td>
+                <td class="caption">
                   <router-link
+                    class="no-decoration pointer"
                     :to="{name: 'requests-view-id',params : { id: item.id}}"
                   >{{item.RequestNumber}}</router-link>
                 </td>
-                <td v-if="isAdmin">{{item.Operator}}</td>
-                <td>{{item.CreatedDate}}</td>
-                <td>{{item.ExpiryDate}}</td>
-                <td>{{item.FlightType}}</td>
-                <td>{{item.PermitType}}</td>
-                <td
-                  :class="item.Status == 'Waiting For Approval' ? 'accent-color' : ''"
-                >{{item.Status}}</td>
-                <td v-if="!isAdmin" class="text-xs-right">
+                <td>
+                  <v-menu offset-x open-on-hover>
+                    <template v-slot:activator="{on}">
+                      <span class="caption pointer" v-on="on">{{item.OperatorName}}</span>
+                    </template>
+                    <v-card>
+                      <v-card-text>
+                        <div class="mb-2">
+                          <div class="caption primary--text">Name</div>
+                          <div class="caption black--text">{{ item.OperatorName }}</div>
+                        </div>
+                        <div class="mb-2">
+                          <div class="caption primary--text">Email</div>
+                          <div
+                            class="caption black--text"
+                          >{{ item.OperatorEmail ? item.OperatorEmail : '-' }}</div>
+                        </div>
+                        <div class="mb-2">
+                          <div class="caption primary--text">Fax</div>
+                          <div
+                            class="caption black--text"
+                          >{{ item.OperatorFax ? item.OperatorFax : '-' }}</div>
+                        </div>
+                        <div class="mb-2">
+                          <div class="caption primary--text">Phone</div>
+                          <div
+                            class="caption black--text"
+                          >{{ item.OperatorPhone ? item.OperatorPhone : '-' }}</div>
+                        </div>
+                        <div class="mb-2">
+                          <div class="caption primary--text">Website</div>
+                          <div
+                            class="caption black--text"
+                          >{{ item.OperatorWebsite ? item.OperatorWebsite : '-' }}</div>
+                        </div>
+                      </v-card-text>
+                    </v-card>
+                  </v-menu>
+                </td>
+                <td class="caption">{{item.CreatedDate}}</td>
+                <td class="caption">{{item.FlightDate}}</td>
+                <td class="caption">{{item.ExpiryDate}}</td>
+                <td class="caption">{{item.FlightType}}</td>
+                <td class="caption">{{item.PermitType}}</td>
+                <!-- <td
+                  class="caption"
+                  :class="item.Status == 'Rejected' || item.Status == 'Expired' || item.Status == 'Cancelled' ? 'red--text' : item.Status == 'Completed' ? 'primary--text' : 'accent--text'"
+                >{{item.Status}}</td>-->
+                <td class="pl-0 pr-0">
+                  <div class="d-flex justify-end">
+                    <div
+                      class="status-dot"
+                      :class="`${item.Status.toLowerCase().split(' ').join('-')}-status`"
+                    ></div>
+                  </div>
+                </td>
+                <td class="d-flex align-center caption pl-1">{{item.Status}}</td>
+                <td class="text-right">
                   <v-menu
                     offset-y
                     dense
@@ -226,35 +248,29 @@
                     left
                   >
                     <template v-slot:activator="{ on }">
-                      <v-icon v-on="on">mdi-dots-vertical</v-icon>
+                      <v-icon v-on="on" v-if="!isAdmin">mdi-dots-vertical</v-icon>
                     </template>
                     <v-list dense>
                       <v-list-item :to="{name: 'requests-edit-id', params: {id: item.id}}">
                         <v-list-item-title>Edit</v-list-item-title>
                       </v-list-item>
-                      <!-- <v-list-item @click="onEditUser(item)">
-                        <v-list-item-title>Cancel</v-list-item-title>
-                      </v-list-item>-->
-                      <!-- <v-list-item>
-                        <v-list-item-title class="error-color">Delete</v-list-item-title>
-                      </v-list-item>-->
+                      <v-list-item
+                        @click="onCancel(item)"
+                        v-if="item.Status == 'Waiting For Approval' || item.Status == 'Rejected'"
+                      >
+                        <v-list-item-title class="error-color">Cancel</v-list-item-title>
+                      </v-list-item>
                     </v-list>
                   </v-menu>
                 </td>
               </tr>
             </tbody>
           </template>
-          <!-- <template v-slot:footer>
-            <v-data-footer
-              :options="{page: 1,itemsPerPage: 1}"
-              :pagination="{page: 1,itemsPerPage: 10,pageStart: 1,pageStop: 1,pageCount: 1,itemsLength: 10}"
-            ></v-data-footer>
-          </template>-->
         </v-data-table>
       </v-flex>
     </v-layout>
     <app-snackbar :snackbar="snackbar" @snackbarAction="onSnackbarAction($event)"></app-snackbar>
-  </v-container>
+  </div>
 </template>
 <script>
 export default {
@@ -268,6 +284,48 @@ export default {
       },
       deep: true,
       immediate: false
+    },
+
+    requestStatuses: {
+      immediate: true,
+      handler() {
+        if (this.requestStatuses.length > 0) {
+          this.mapRequestStatus()
+          this.loadingStatus = false
+        }
+      }
+    },
+
+    flightTypes: {
+      immediate: true,
+      handler() {
+        if (this.flightTypes.length > 0) this.loadingStatus = false
+      }
+    },
+
+    permitTypes: {
+      immediate: true,
+      handler() {
+        if (this.permitTypes.length > 0) this.loadingStatus = false
+      }
+    },
+
+    'selectedFilters.createdDate': {
+      handler() {
+        if (this.selectedFilters.createdDate)
+          this.createdDateFormatted = moment(
+            this.selectedFilters.createdDate
+          ).format('MM-DD-YYYY')
+      }
+    },
+
+    'selectedFilters.expiryDate': {
+      handler() {
+        if (this.selectedFilters.expiryDate)
+          this.expiryDateFormatted = moment(
+            this.selectedFilters.expiryDate
+          ).format('MM-DD-YYYY')
+      }
     }
   },
   data: () => ({
@@ -291,8 +349,6 @@ export default {
       PageSize: 10
     },
     requestStatus: [],
-    flightTypes: [],
-    permitTypes: [],
     dashboardLoading: false,
     selectedFilters: {
       createdDate: null,
@@ -304,72 +360,128 @@ export default {
       selectedPermitType: null
     },
     title: 'Requests',
-    requests: []
+    requests: [],
+    selectedRequest: {},
+    createdDateFormatted: null,
+    expiryDateFormatted: null
   }),
+  head() {
+    return {
+      titleTemplate: `${this.title} - %s`
+    }
+  },
+
   computed: {
     isAdmin() {
-      return this.$store.state.app.isAdmin
+      return this.$store.state.auth.isAdmin
     },
+
+    requestStatuses() {
+      return this.$store.state.category.requestStatuses
+    },
+
+    flightTypes() {
+      return this.$store.state.category.flightTypes
+    },
+
+    permitTypes() {
+      return this.$store.state.category.permitTypes
+    },
+
     headers() {
       let tempHeaders = [
         {
           text: 'Request Number',
           align: 'left',
           sortable: false,
-          value: 'RequestNumber'
+          value: 'RequestNumber',
+          width: '12%'
         },
         {
           text: 'Operator',
           align: 'left',
           sortable: false,
           value: 'Operator',
-          class: ''
+          class: '',
+          width: '16%'
         },
         {
           text: 'Creation Date',
           align: 'left',
           sortable: false,
-          value: 'CreatedDate'
+          value: 'CreatedDate',
+          width: '12%'
+        },
+        {
+          text: 'Flight Date',
+          align: 'left',
+          sortable: false,
+          value: 'FlightDate',
+          width: '9%'
         },
         {
           text: 'Expiry Date',
           align: 'left',
           sortable: false,
-          value: 'ExpiryDate'
+          value: 'ExpiryDate',
+          width: '9%'
         },
         {
           text: 'Flight Type',
           align: 'left',
           sortable: false,
-          value: 'FlightType'
+          value: 'FlightType',
+          width: '10%'
         },
         {
           text: 'Permit Type',
           align: 'left',
           sortable: false,
-          value: 'PermitType'
-        },
-        {
-          text: 'Status',
-          align: 'left',
-          sortable: false,
-          value: 'Status'
+          value: 'PermitType',
+          width: '10%'
         },
         {
           text: '',
           align: 'right',
           sortable: false,
-          value: 'actions'
+          value: '',
+          width: '1%'
+        },
+        {
+          text: 'Status',
+          align: 'left',
+          sortable: false,
+          value: 'Status',
+          width: '15%'
+        },
+
+        {
+          text: '',
+          align: 'right',
+          sortable: false,
+          value: 'actions',
+          width: '1%'
         }
       ]
-      return this.isAdmin
-        ? _.reject(tempHeaders, { value: 'actions' })
-        : _.reject(tempHeaders, { value: 'Operator' })
+      return tempHeaders
+    },
+
+    requestsFilter: {
+      get() {
+        return this.$store.state.app.requestsFilter
+      },
+      set(v) {
+        this.$store.dispatch('app/setRequestsFilter', v)
+      }
     }
   },
+
+  beforeDestroy() {
+    this.requestsFilter = null
+  },
+
   methods: {
     updatePagination(pagination) {
-      console.log(pagination)
       this.payload.PageNumber = pagination.page - 1
       //this.myPageNumber = pagination.page - 1
     },
@@ -383,9 +495,20 @@ export default {
       }
       this.getPermitRequests()
     },
-    onSnackbarAction(action) {
-      this.snackbar.show = false
+
+    clearDateFilter(input) {
+      this.payload.PageNumber = 0
+      if (input == 'created') {
+        this.createdDateFormatted = null
+        this.selectedFilters.createdDate = null
+      } else {
+        this.expiryDateFormatted = null
+        this.selectedFilters.expiryDate = null
+      }
+
+      this.getPermitRequests()
     },
+
     searchRequest() {
       this.payload.Search = this.selectedFilters.search.trim()
       // if (this.payload.Search.length > 3) {
@@ -395,6 +518,7 @@ export default {
       this.getPermitRequests()
     },
     togglePermitType(group) {
+      this.requestsFilter = null
       if (this.isPermitTypeSelected(group)) {
         this.selectedFilters.selectedPermitType = null
       } else {
@@ -408,6 +532,7 @@ export default {
       return this.selectedFilters.selectedPermitType === group
     },
     toggleFlightType(group) {
+      this.requestsFilter = null
       if (this.isFlightTypeSelected(group)) {
         this.selectedFilters.selectedFlightType = null
       } else {
@@ -422,6 +547,7 @@ export default {
     },
 
     clearFilters() {
+      this.requestsFilter = null
       this.selectedFilters = {
         createdDate: null,
         expiryDate: null,
@@ -447,84 +573,139 @@ export default {
     },
 
     updateStatus(status, index) {
+      this.requestsFilter = null
       this.requestStatus[index].selected = !status.selected
       this.payload.PageNumber = 0
       this.myPageNumber = 1
       this.getPermitRequests()
     },
-    getRequestStatus() {
-      this.loadingStatus = true
-      this.$axios.$get(`Common/GetListByType?type=All`).then(response => {
-        this.loadingStatus = false
-        if (response.success) {
-          this.requestStatus = _.map(
-            _.filter(response.result, { type: 'Status' }),
-            item => {
-              return {
-                id: item.id,
-                name: item.name,
-                selected: false
-              }
-            }
-          )
-          this.flightTypes = _.filter(response.result, { type: 'FlightType' })
-          this.permitTypes = _.filter(response.result, { type: 'PermitType' })
-        } else {
+
+    mapRequestStatus() {
+      this.requestStatus = this.requestStatuses.map(item => {
+        return {
+          id: item.id,
+          name: item.name,
+          selected: false
         }
       })
     },
-    getPermitRequests() {
-      this.payload.CreatedDate = this.selectedFilters.createdDate
-        ? this.selectedFilters.createdDate
-        : null
-      this.payload.ExpiryDate = this.selectedFilters.expiryDate
-        ? this.selectedFilters.expiryDate
-        : null
 
-      this.payload.StatusId = _.map(
-        _.filter(this.requestStatus, { selected: true }),
-        'id'
-      ) // [1,2,3,4]
-      this.payload.PermitTypeId = this.selectedFilters.selectedPermitType
-        ? this.selectedFilters.selectedPermitType.id
-        : null
-      this.payload.FlightTypeId = this.selectedFilters.selectedFlightType
-        ? this.selectedFilters.selectedFlightType.id
-        : null
+    getPermitRequests() {
+      if (this.requestsFilter) {
+        this.payload = this.requestsFilter
+        this.requestStatus.map(
+          status =>
+            (status.selected = this.payload.StatusId.includes(status.id))
+        )
+        this.selectedFilters.selectedPermitType = this.permitTypes.find(
+          permitType => permitType.id == this.payload.PermitTypeId
+        )
+        this.selectedFilters.selectedFlightType = this.flightTypes.find(
+          flightType => flightType.id == this.payload.FlightTypeId
+        )
+      } else {
+        this.payload.CreatedDate = this.selectedFilters.createdDate
+          ? this.selectedFilters.createdDate
+          : null
+        this.payload.ExpiryDate = this.selectedFilters.expiryDate
+          ? this.selectedFilters.expiryDate
+          : null
+
+        this.payload.StatusId = _.map(
+          _.filter(this.requestStatus, { selected: true }),
+          'id'
+        )
+        this.payload.PermitTypeId = this.selectedFilters.selectedPermitType
+          ? this.selectedFilters.selectedPermitType.id
+          : null
+        this.payload.FlightTypeId = this.selectedFilters.selectedFlightType
+          ? this.selectedFilters.selectedFlightType.id
+          : null
+      }
+
       this.dashboardLoading = true
       let apiURL = this.isAdmin
         ? `${process.env.adminUrl}Request/all`
         : `Request/all`
 
-      //this.payload.PageNumber // data table pagination
-      this.$axios.$post(apiURL, this.payload).then(response => {
+      axios.post(apiURL, this.payload).then(response => {
         this.dashboardLoading = false
-        if (response.success) {
-          // alert()
-          this.totalRequests = response.result.total
-          this.requests = _.map(response.result.requests, item => {
+        if (response && response.data.success) {
+          this.totalRequests = response.data.result.total
+          this.requests = _.map(response.data.result.requests, item => {
             return {
               id: item.id,
               RequestNumber: item.number,
-              Operator: item.operatorName,
+              OperatorName: item.operatorName,
+              OperatorEmail: item.operatorEmail,
+              OperatorFax: item.operatorFax,
+              OperatorPhone: item.operatorPhone,
+              OperatorWebsite: item.operatorWebSite,
               CreatedDate: moment(item.createdDate).format('MM-DD-YYYY'),
-              ExpiryDate: moment(item.expiryDate).format('MM-DD-YYYY'),
+              FlightDate: item.flightDate == '0001-01-01T00:00:00'?null:moment(item.flightDate).format('MM-DD-YYYY hh:MM'),
+              ExpiryDate: item.expiryDate?moment(item.expiryDate).format('MM-DD-YYYY'):null,
               FlightType: item.flightType,
               PermitType: item.permitType,
-              Status: item.status
+              Status: item.status.name,
+              StatusId: item.status.id
             }
           })
-        } else {
-          this.snackbar.text = response.message
-          this.snackbar.show = true
         }
       })
+    },
+
+    onCancel(request) {
+      this.selectedRequest = request
+      this.snackbar = {
+        show: true,
+        text: `Are you sure you want to cancel ${request.RequestNumber}?`,
+        timeout: 0,
+        actions: ['Yes', 'No']
+      }
+    },
+
+    cancelRequest() {
+      this.snackbar.show = false
+      this.dashboardLoading = true
+      axios
+        .post(`request/cancelRequest?id=${this.selectedRequest.id}`)
+        .then(response => {
+          if (response && response.data.success) {
+            this.getPermitRequests()
+            window.getApp.snackbar = {
+              show: true,
+              text: response.data.message
+            }
+          }
+        })
+        .finally(() => {
+          this.dashboardLoading = false
+        })
+    },
+
+    onSnackbarAction(action) {
+      switch (action) {
+        case 'Yes':
+          this.cancelRequest()
+          break
+        case 'No':
+          this.snackbar.show = false
+          break
+      }
     }
   },
   created() {
     this.$store.dispatch('app/setAppTitle', this.title)
-    this.getRequestStatus()
+    this.loadingStatus = true
+    // this.getRequestStatus()
     //this.getPermitRequests()
+
+    if (
+      this.requestStatus.length > 0 &&
+      this.permitTypes.length > 0 &&
+      this.flightTypes.length > 0
+    )
+      this.loadingStatus = false
   }
 }
 </script>

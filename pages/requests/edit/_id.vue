@@ -3,7 +3,7 @@
     <request-form
       @updateRequest="updateRequest($event)"
       action="edit"
-      requestBtnText="Update and Submit Performa"
+      requestBtnText="Resubmit"
       :request="request"
     ></request-form>
     <app-snackbar :snackbar="snackbar" @snackbarAction="onSnackbarAction($event)"></app-snackbar>
@@ -30,96 +30,45 @@ export default {
     deletedDocs: []
   }),
 
+  head() {
+    return {
+      titleTemplate: `${this.title} - %s`
+    }
+  },
+
   mounted() {
     this.$store.dispatch('app/setAppTitle', this.title)
     this.getRequestData()
   },
 
   methods: {
+    onSnackbarAction(action) {
+      this.snackbar.show = false
+    },
+
     getRequestData() {
-      this.$store.dispatch('app/setLoading', true)
-      this.$axios
-        .$get(`Request/GetById?id=${this.$route.params.id}`)
+      axios
+        .get(`Request/GetById?id=${this.$route.params.id}`)
         .then(response => {
-          this.request = response.result
-        })
-        .finally(() => {
-          this.$store.dispatch('app/setLoading', false)
+          if (response && response.data.success)
+            this.request = response.data.result
         })
     },
 
     updateRequest(payload) {
-      this.$store.dispatch('app/setLoading', true)
-
-      this.$axios
-        .$post('request/update', payload)
-        .then(response => {
-          this.snackbar = {
+      axios.post('request/update', payload).then(response => {
+        if (response && response.data.success) {
+          window.getApp.snackbar = {
             show: true,
-            timeout: 6000,
-            text: response.message,
-            actions: ['Close']
+            text: response.data.message
           }
-
-          // this.checkDocuments(data.documents)
-          // this.request.requestRequirements.forEach(req => {
-          //   this.deleteDocument(req)
-          // })
-        })
-        .finally(() => {
-          this.$store.dispatch('app/setLoading', false)
-        })
+          this.$router.push({
+            name: 'requests-view-id',
+            params: { id: this.request.id }
+          })
+        }
+      })
     }
-
-    // checkDocuments(docs) {
-    //   docs.forEach(doc => {
-    //     let d = this.request.requestRequirements.find(
-    //       i => i.requirementId == doc.id
-    //     )
-    //     if (d) this.updatedDocs.push(doc)
-    //     else this.addedDocs.push(doc)
-    //   })
-
-    //   this.request.requestRequirements.forEach(doc => {
-    //     let d = docs.find(i => i.id == doc.requirementId)
-    //     if (!d) this.deletedDocs.push(doc)
-    //   })
-    // },
-
-    // addDocument(req) {
-    //   let payload = {
-    //     requestId: this.request.id,
-    //     requirementId: req.id,
-    //     documentId: req.documentId,
-    //     documentName: req.documentName
-    //   }
-
-    //   this.$axios.$post('request/addrequirement', payload).then(response => {})
-    // },
-
-    // updateDocument(req) {
-    //   let payload = {
-    //     requestId: this.request.id,
-    //     requirementId: req.id,
-    //     documentId: req.documentId,
-    //     documentName: req.documentName,
-    //     id: req.id
-    //   }
-
-    //   this.$axios
-    //     .$post('request/updaterequirement', payload)
-    //     .then(response => {})
-    // },
-
-    // deleteDocument(req) {
-    //   let payload = {
-    //     id: req.id
-    //   }
-
-    //   this.$axios
-    //     .$get('request/deleterequirement', payload)
-    //     .then(response => {})
-    // }
   }
 }
 </script>

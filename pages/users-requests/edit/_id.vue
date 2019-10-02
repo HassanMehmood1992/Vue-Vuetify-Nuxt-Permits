@@ -9,7 +9,7 @@ export default {
   layout: 'main',
   components: { UserForm },
   data: () => ({
-    title: 'User Edit',
+    title: 'User Request Edit',
     user: {}
   }),
 
@@ -29,10 +29,10 @@ export default {
       axios
         .get(`${process.env.adminUrl}accounts/user/${this.$route.params.id}`)
         .then(response => {
-          if (response && response.data.success)
+          if (response && response.data.success) {
             this.user = response.data.result
+          }
         })
-        .catch(error => {})
     },
 
     updateUser(model, files) {
@@ -92,14 +92,15 @@ export default {
 
       axios.post('accounts/user/update', payload).then(response => {
         if (response && response.data.success) {
-          window.getApp.snackbar = {
-            show: true,
-            text: response.data.message
-          }
           this.$router.push({
             name: 'users-view-id',
             params: { id: this.user.id }
           })
+
+          window.getApp.snackbar = {
+            show: true,
+            text: response.data.message
+          }
         }
       })
     }

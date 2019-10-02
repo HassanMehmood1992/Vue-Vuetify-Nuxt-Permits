@@ -5,16 +5,22 @@
     dense
     return-object
     :items="items"
-    :label="label"
     :loading="loading"
     :disabled="loading"
     :rules="rules"
-  ></v-autocomplete>
+    :required="required"
+    clearable
+  >
+    <template v-slot:label>
+      <span>{{ label }}</span>
+      <span v-if="required" class="red--text">*</span>
+    </template>
+  </v-autocomplete>
 </template>
 
 <script>
 export default {
-  props: ['value', 'label', 'rules'],
+  props: ['value', 'label', 'rules', 'required'],
   data: () => ({
     items: [],
     loading: false
@@ -38,10 +44,11 @@ export default {
   methods: {
     getItems() {
       this.loading = true
-      this.$axios
-        .$get('Common/GetCountry')
+      axios
+        .get('Common/GetCountry')
         .then(response => {
-          this.items = response.result
+          if (response && response.data.success)
+            this.items = response.data.result
         })
         .finally(() => {
           this.loading = false

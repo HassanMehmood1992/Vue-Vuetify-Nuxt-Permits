@@ -1,34 +1,22 @@
 <template>
-  <v-layout wrap class="white-background pa-5">
-    <v-flex xs12 sm12 md4>
-      <v-text-field
-        placeholder="Search"
-        hide-details
-        prepend-inner-icon="mdi-magnify"
-        @keydown="searchUser"
-      ></v-text-field>
-    </v-flex>
-    <v-flex xs12 sm12 md12>
-      <users-table
-        :userList="users"
-        :loading="loading"
-        @onDelete="onDelete($event)"
-        @onApprove="onApprove($event)"
-        @onReject="onReject($event)"
-      ></users-table>
-    </v-flex>
+  <div>
+    <user-profile
+      :user="user"
+      @onDelete="onDelete($event)"
+      @onApprove="onApprove($event)"
+      @onReject="onReject($event)"
+    ></user-profile>
     <app-snackbar :snackbar="snackbar" @snackbarAction="snackbarAction($event)"></app-snackbar>
-
     <v-menu
       :close-on-content-click="false"
       :close-on-click="false"
       v-model="rejectCommentMenu"
       content-class="userrequests--rejectComment"
-      activator=".user-actions"
+      activator=".userreject-btn"
       offset-y
       min-width="300px"
     >
-      <v-card light>
+      <v-card>
         <v-card-text>
           <v-textarea label="User Rejection Comment" v-model="rejectionComment"></v-textarea>
         </v-card-text>
@@ -37,7 +25,6 @@
           <v-btn
             text
             class="caption"
-            color="red"
             :disabled="!rejectionComment"
             @click="rejectConfirmation"
           >Reject</v-btn>
@@ -45,35 +32,22 @@
         </v-card-actions>
       </v-card>
     </v-menu>
-  </v-layout>
+  </div>
 </template>
-
 <script>
-import UsersTable from '~/components/UsersTable'
-
+import UserProfile from '~/components/UserProfile'
 export default {
   layout: 'main',
-  components: { UsersTable },
-  middleware: 'admin',
-
+  components: { UserProfile },
   data: () => ({
-    title: 'Users Requests',
-    valid: false,
-    users: [],
-    unfilteredUsers: [],
-    loading: false,
+    title: 'User Request Details',
+    user: {},
     snackbar: {},
     selectedUser: {},
     actionType: '',
     rejectCommentMenu: false,
     rejectionComment: ''
   }),
-
-  computed: {
-    rules() {
-      return this.$store.state.app.inputRules
-    }
-  },
 
   head() {
     return {
@@ -83,31 +57,18 @@ export default {
 
   mounted() {
     this.$store.dispatch('app/setAppTitle', this.title)
-    this.getPendingUsers()
+    this.getUserDetails()
   },
 
   methods: {
-    getPendingUsers() {
-      this.loading = true
+    getUserDetails() {
       axios
-        .get(`${process.env.adminUrl}Accounts/User/GetPending`)
+        .get(`${process.env.adminUrl}accounts/user/${this.$route.params.id}`)
         .then(response => {
-          this.loading = false
           if (response && response.data.success) {
-            this.users = response.data.result
-            this.unfilteredUsers = response.data.result
+            this.user = response.data.result
           }
         })
-    },
-
-    searchUser(e) {
-      if (e.target.value) {
-        this.users = this.users.filter(
-          user =>
-            user.fullName.includes(e.target.value) ||
-            user.email.includes(e.target.value)
-        )
-      } else this.users = this.unfilteredUsers
     },
 
     onDelete(user) {
@@ -115,14 +76,13 @@ export default {
       this.actionType = 'delete'
       this.snackbar = {
         show: true,
-        text: `Are you sure you want to delete ${user.fullName}?`,
+        text: `Are you sure you want to delete ${user.name}?`,
         timeout: 0,
         actions: ['Yes', 'No']
       }
     },
 
     deleteUser() {
-      this.loading = true
       this.snackbar.show = false
       axios
         .post(
@@ -130,18 +90,12 @@ export default {
         )
         .then(response => {
           if (response && response.data.success) {
-            this.users = this.users.filter(
-              user => user.id != this.selectedUser.id
-            )
-
+            this.$router.push({ name: 'users-requests' })
             window.getApp.snackbar = {
               show: true,
               text: response.data.message
             }
           }
-        })
-        .finally(() => {
-          this.loading = false
         })
     },
 
@@ -150,14 +104,13 @@ export default {
       this.actionType = 'approve'
       this.snackbar = {
         show: true,
-        text: `Are you sure you want to approve ${user.fullName}?`,
+        text: `Are you sure you want to approve ${user.name}?`,
         timeout: 0,
         actions: ['Yes', 'No']
       }
     },
 
     approveUser() {
-      this.loading = true
       this.snackbar.show = false
       axios
         .post(
@@ -165,18 +118,12 @@ export default {
         )
         .then(response => {
           if (response && response.data.success) {
-            this.users = this.users.filter(
-              user => user.id != this.selectedUser.id
-            )
-
+            this.$router.push({ name: 'users-requests' })
             window.getApp.snackbar = {
               show: true,
               text: response.data.message
             }
           }
-        })
-        .finally(() => {
-          this.loading = false
         })
     },
 
@@ -189,14 +136,13 @@ export default {
       this.actionType = 'reject'
       this.snackbar = {
         show: true,
-        text: `Are you sure you want to reject ${this.selectedUser.fullName}?`,
+        text: `Are you sure you want to reject ${this.selectedUser.name}?`,
         timeout: 0,
         actions: ['Yes', 'No']
       }
     },
 
     rejectUser() {
-      this.loading = true
       this.rejectCommentMenu = false
       this.snackbar.show = false
       axios
@@ -204,19 +150,13 @@ export default {
           `${process.env.adminUrl}accounts/user/rejected?id=${this.selectedUser.id}&rejectionComment=${this.rejectionComment}`
         )
         .then(response => {
-          if (response && response.data.success) {
-            this.users = this.users.filter(
-              user => user.id != this.selectedUser.id
-            )
-
+          if (response.data.success) {
+            this.$router.push({ name: 'users-requests' })
             window.getApp.snackbar = {
               show: true,
               text: response.data.message
             }
           }
-        })
-        .finally(() => {
-          this.loading = false
         })
     },
 
@@ -259,3 +199,5 @@ export default {
   }
 }
 </script>
+<style lang="scss">
+</style>

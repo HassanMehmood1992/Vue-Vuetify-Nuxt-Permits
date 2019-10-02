@@ -9,7 +9,8 @@ require('../static/js/Leaflet.Geodesic')
 export default {
   props: { init: Boolean, flightPoints: Array, saudiPoints: Array },
   data: () => ({
-    mapObject: {}
+    mapObject: {},
+    markersLayer: new L.LayerGroup()
   }),
 
   methods: {
@@ -29,38 +30,48 @@ export default {
     },
 
     plotMap() {
-      console.log('plot map')
-      L.circleMarker(this.flightPoints[0], {
+      this.markersLayer.clearLayers()
+
+      let origin = L.circleMarker(this.flightPoints[0], {
         fill: true,
         fillOpacity: 1,
         fillColor: '#ffffff',
         color: '#d68e25',
         radius: 7
-      }).addTo(this.mapObject)
+      })
 
-      L.circleMarker(this.flightPoints[this.flightPoints.length - 1], {
-        fill: true,
-        fillOpacity: 1,
-        fillColor: '#d68e25',
-        color: '#d68e25',
-        radius: 7
-      }).addTo(this.mapObject)
+      let dest = L.circleMarker(
+        this.flightPoints[this.flightPoints.length - 1],
+        {
+          fill: true,
+          fillOpacity: 1,
+          fillColor: '#d68e25',
+          color: '#d68e25',
+          radius: 7
+        }
+      )
+
+      this.markersLayer.addLayer(origin)
+      this.markersLayer.addLayer(dest)
 
       this.saudiPoints.forEach((points, index) => {
         if (index != 0 || index != this.saudiPoints.length - 1) {
-          L.circleMarker(points, {
+          let marker = L.circleMarker(points, {
             fill: true,
             fillOpacity: 1,
             fillColor: '#d68e25',
             color: '#d68e25',
             radius: 4
-          }).addTo(this.mapObject)
+          })
+          this.markersLayer.addLayer(marker)
         }
       })
 
       var polyline = L.polyline(this.flightPoints, { color: '#d68e25' }).addTo(
         this.mapObject
       )
+      this.markersLayer.addLayer(polyline)
+      this.markersLayer.addTo(this.mapObject)
 
       this.mapObject.fitBounds(polyline.getBounds())
     }

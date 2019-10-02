@@ -1,20 +1,33 @@
 <template>
   <v-autocomplete
     v-model="val"
-    item-text="registration"
-    dense
-    return-object
     :items="items"
-    :label="label"
+    dense
+    item-text="aircraftType"
+    return-object
     :loading="loading"
     :disabled="loading"
     :rules="rules"
-  ></v-autocomplete>
+    :filter="filterItems"
+    :required="required"
+    clearable
+  >
+    <template v-slot:item="data">
+      <div>
+        <span class="caption">{{ data.item.aircraftType }}</span>
+        <span class="caption accent--text ml-2">{{ `(${data.item.aircraftDescription})` }}</span>
+      </div>
+    </template>
+    <template v-slot:label>
+      <span>{{ label }}</span>
+      <span v-if="required" class="red--text">*</span>
+    </template>
+  </v-autocomplete>
 </template>
 
 <script>
 export default {
-  props: ['value', 'label', 'rules'],
+  props: ['value', 'label', 'rules', 'required'],
   data: () => ({
     items: [],
     loading: false
@@ -38,14 +51,22 @@ export default {
   methods: {
     getItems() {
       this.loading = true
-      this.$axios
-        .$get('Common/GetAircraftList')
+      axios
+        .get('Common/GetAircraftList')
         .then(response => {
-          this.items = response.result
+          if (response && response.data.success)
+            this.items = response.data.result
         })
         .finally(() => {
           this.loading = false
         })
+    },
+
+    filterItems(item, queryText, itemText) {
+      return (
+        item.aircraftType.toLowerCase().includes(queryText.toLowerCase()) ||
+        item.aircraftDescription.toLowerCase().includes(queryText.toLowerCase())
+      )
     }
   }
 }
