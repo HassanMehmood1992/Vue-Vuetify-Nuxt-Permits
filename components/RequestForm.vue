@@ -128,17 +128,7 @@
                   @onSelect="model.purpose = $event;getPermitRequirements()"
                 ></select-field>
               </v-flex>
-              <!-- Aircraft -->
-              <v-flex xs12 sm12 md6 class="mt-2">
-                <aircraft-select
-                  v-model="model.aircraft"
-                  label="Aircraft"
-                  class="pr-2"
-                  :required="true"
-                  :rules="[rules.required]"
-                  @onSelect="model.aircraft = $event"
-                ></aircraft-select>
-              </v-flex>
+
               <!-- Flight Type -->
               <v-flex xs12 sm12 md6 class="mt-2">
                 <select-field
@@ -200,6 +190,35 @@
                     </v-container>
                   </v-date-picker>
                 </v-menu>
+              </v-flex>
+              <!-- Aircraft -->
+              <v-flex xs12 sm12 md6 class="mt-2">
+                <aircraft-select
+                  v-model="model.aircraft"
+                  label="Aircraft"
+                  class="pr-2"
+                  :required="true"
+                  :rules="[rules.required]"
+                  @onSelect="model.aircraft = $event;getAircraftDetail()"
+                ></aircraft-select>
+              </v-flex>
+              <v-flex xs12 sm12 md6 class="mt-2">
+                <v-text-field
+                  class="pr-2"
+                  v-model="model.aircraftMTOW"
+                  required
+                  :rules="[rules.required]"
+                  type="number"
+                  v-if="model.aircraft"
+                  @input="enableMTOW"
+                >
+                  <template v-slot:label>
+                    <span>
+                      MTOW
+                      <span class="red--text">(TON)*</span>
+                    </span>
+                  </template>
+                </v-text-field>
               </v-flex>
               <v-flex xs12 sm12 md12 class="mt-5">
                 <span class="primary-color half-a-border-on-bottom">Permit Requirements</span>
@@ -291,19 +310,26 @@
             </div>
 
             <div class="d-flex justify-space-between mt-5">
-              <div>
+              <div class="md4">
                 <div class="caption">Estimated Navigation Charge</div>
                 <p
                   class="accent-color font-weight-black"
                 >{{ model.navigationCharges ? `${model.navigationCharges.toFixed(2)} SAR` : '--' }}</p>
               </div>
+              <div class="md4">
+                <div class="caption">KSA Overfly Distance</div>
+                <p
+                  class="accent-color font-weight-black"
+                >{{ model.overflyDistance ? `${model.overflyDistance.toFixed(2)} KM` : '--' }}</p>
+              </div>
               <v-btn
                 depressed
                 color="primary"
-                :disabled="!model.navigationCharges || loading"
+                :disabled="!model.navigationCharges || loading || mtowChange"
                 @click="onRequest"
               >{{ requestBtnText }}</v-btn>
             </div>
+            <!-- </div> -->
           </v-flex>
         </v-layout>
       </v-form>
@@ -356,7 +382,9 @@ export default {
       originAirport: '',
       destAirport: '',
       navigationCharges: '',
-      flightDate: ''
+      flightDate: '',
+      overflyDistance: '',
+      aircraftMTOW: ''
     },
     payload: {},
     permitRequirements: [],
@@ -385,7 +413,8 @@ export default {
         pattern: /[0-59]/,
         transform: v => v.toLocaleUpperCase()
       }
-    }
+    },
+    mtowChange: false
   }),
 
   computed: {
@@ -439,6 +468,9 @@ export default {
         this.model.destAirport = this.request.destAirport
         this.model.atcRoute = this.request.atcRoute
         this.model.navigationCharges = this.request.navigationCharges
+        this.model.aircraftMTOW = this.request.aircraftMTOW
+        this.model.overflyDistance = this.request.overflyDistance
+        this.model.flightDate = this.request.flightDate
         this.permitRequirements = this.request.requestRequirements.map(req => {
           return {
             id: req.requirementId,
@@ -474,6 +506,13 @@ export default {
   },
 
   methods: {
+    enableMTOW() {
+      console.log('inside enableMTOW')
+      this.mtowChange = true
+    },
+    getAircraftDetail() {
+      this.model.aircraftMTOW = this.model.aircraft.mtow
+    },
     getPermitRequirements() {
       let payload = {
         ...(this.model.permitType
@@ -561,6 +600,12 @@ export default {
             FlightDate: flightDateConverted ? flightDateConverted : null,
             NavigationCharges: this.model.navigationCharges
               ? this.model.navigationCharges
+              : null,
+            AircraftMTOW: this.model.aircraftMTOW
+              ? this.model.aircraftMTOW
+              : null,
+            OverflyDistance: this.model.overflyDistance
+              ? this.model.overflyDistance
               : null,
             requestRequirements: this.permitRequirements.map(req => {
               return {
@@ -716,8 +761,10 @@ export default {
         axios
           .post('GIS/CalculateDistanceSaudi', payload)
           .then(response => {
-            if (response && response.data.success) resolve(response)
-            else {
+            if (response && response.data.success) {
+              this.model.overflyDistance = response.data.result[0].kilometers
+              resolve(response)
+            } else {
               reject()
             }
           })
@@ -733,16 +780,19 @@ export default {
       let payload = {
         distance: distance,
         distanceUnit: 'km',
-        mtow: this.model.aircraft.mtow,
-        mtowUnit: this.model.aircraft.mtowUnit
+        // mtow: this.model.aircraft.mtow,
+        // mtowUnit: this.model.aircraft.mtowUnit
+        weight: this.model.aircraftMTOW
       }
 
       return new Promise((resolve, reject) => {
         axios
           .post('request/CalculateNavCharge', payload)
           .then(response => {
-            if (response && response.data.success) resolve(response)
-            else {
+            if (response && response.data.success) {
+              this.mtowChange = false
+              resolve(response)
+            } else {
               reject()
             }
           })

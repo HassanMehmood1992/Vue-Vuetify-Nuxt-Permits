@@ -173,6 +173,10 @@
             <div
               class="accent-color font-weight-bold"
             >{{ permitRequest.navigationCharges? `${permitRequest.navigationCharges.toFixed(2)} SAR` : '--'}}</div>
+            <div class="secondary-color caption">KSA Overfly Distance</div>
+            <div
+              class="accent-color font-weight-bold"
+            >{{ permitRequest.overflyDistance? `${permitRequest.overflyDistance.toFixed(2)} KM` : '--'}}</div>
             <div
               v-if="permitRequest.status ? permitRequest.status.name == 'Rejected'? true:false:false"
             >

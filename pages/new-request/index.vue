@@ -3,7 +3,7 @@
     <request-form
       @generateRequest="generateRequest($event)"
       action="add"
-      requestBtnText="Generate Performa"
+      requestBtnText="Submit"
     ></request-form>
     <app-snackbar :snackbar="snackbar" @snackbarAction="onSnackbarAction($event)"></app-snackbar>
   </div>
