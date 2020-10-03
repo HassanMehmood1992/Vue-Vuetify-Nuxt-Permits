@@ -1,4 +1,4 @@
-# Permitpad
+# Permits
 
 Vue Vuetify and NUXT project for setup of permits for different countries. Overfly, Landing etc. With Multi-lingual Support.
 
