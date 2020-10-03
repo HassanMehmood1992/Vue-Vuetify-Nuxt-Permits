@@ -1,6 +1,6 @@
-# permitpad
+# Permitpad
 
-> PermitPad for approvals of permit requests
+Vue Vuetify and NUXT project for setup of permits for different countries. Overfly, Landing etc. With Multi-lingual Support.
 
 ## Build Setup
 
